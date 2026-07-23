@@ -77,6 +77,7 @@ jobs:
       # Stale restores are useful (restore-keys): the per-component stamps let
       # the build script skip everything whose recipe did not change.
       - name: Cache built component binaries
+        id: binaries
         uses: actions/cache@v4
         with:
           path: binaries
@@ -85,7 +86,12 @@ jobs:
             binaries-${{ matrix.arch }}-${{ steps.fp.outputs.go }}-
             binaries-${{ matrix.arch }}-
 
+      # A primary-key hit above means every component stamp matches and the
+      # build compiles nothing, so the Go caches would never be read: skip
+      # the ~2 min restore. Any pin/flag/Go change misses the primary key
+      # and restores them again.
       - name: Cache Go modules and build cache
+        if: steps.binaries.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: .go-cache
