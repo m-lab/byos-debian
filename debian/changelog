@@ -1,0 +1,7 @@
+mlab-node (1.0.0) unstable; urgency=medium
+
+  * Initial release: native Debian packaging of the M-Lab BYOS node stack.
+    The components run as hardened, sandboxed systemd services. Component
+    binaries are built from the pinned upstream sources at build time.
+
+ -- Measurement Lab <support@measurementlab.net>  Mon, 29 Jun 2026 00:00:00 +0000
