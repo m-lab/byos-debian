@@ -19,7 +19,7 @@
 # Caching: every component carries its own stamp under binaries/.stamps/,
 # keyed on its recipe (pinned tag, package path, build flags, toolchain
 # versions). Re-running the script rebuilds only components whose recipe
-# changed — bumping one version pin rebuilds that one component. Delete
+# changed: bumping one version pin rebuilds that one component. Delete
 # binaries/ (or bump STAMP_SCHEMA below) to force a full rebuild.
 set -euo pipefail
 
@@ -66,8 +66,8 @@ for tool in go git gcc make file; do
 done
 
 # Toolchain fingerprints for the recipe keys: a Go upgrade invalidates every
-# component; a gcc/glibc change only the native (cgo/C) ones, whose output —
-# including the computed libc6 dependency — depends on the host toolchain.
+# component; a gcc/glibc change only the native (cgo/C) ones, whose output
+# (including the computed libc6 dependency) depends on the host toolchain.
 GO_VERSION="$(go version | awk '{print $3}')"
 NATIVE_TOOLCHAIN="gcc=$(gcc -dumpfullversion) libc=$(getconf GNU_LIBC_VERSION)"
 
@@ -85,7 +85,7 @@ trap 'chmod -R u+rwX "${WORK_DIR}" 2>/dev/null || true; rm -rf "${WORK_DIR}" 2>/
 # WORK_DIR is removed by the EXIT trap).
 export GOPATH="${AUTONODE_GOPATH:-${WORK_DIR}/go}"
 export GOCACHE="${AUTONODE_GOCACHE:-${WORK_DIR}/gocache}"
-# Go's per-build scratch dir ($WORK) follows TMPDIR, not GOCACHE - point it
+# Go's per-build scratch dir ($WORK) follows TMPDIR, not GOCACHE; point it
 # at WORK_DIR too, or large builds can fill a small /tmp tmpfs.
 export GOTMPDIR="${WORK_DIR}/gotmp"
 mkdir -p "${GOTMPDIR}"
@@ -97,15 +97,15 @@ export GOFLAGS="-trimpath -mod=readonly -modcacherw"
 BUILT=0
 SKIPPED=0
 
-# recipe_key ARGS... — cache key for one component: a hash of everything that
-# determines its output except the sources themselves, which are pinned by
-# tag and therefore immutable.
+# recipe_key ARGS...: the cache key for one component, a hash of everything
+# that determines its output except the sources themselves, which are pinned
+# by tag and therefore immutable.
 recipe_key() {
   printf '%s\n' "schema=${STAMP_SCHEMA}" "go=${GO_VERSION}" \
     "goflags=${GOFLAGS}" "$@" | sha256sum | awk '{print $1}'
 }
 
-# needs_build NAME KEY OUTPUTS... — decide whether NAME must be (re)built.
+# needs_build NAME KEY OUTPUTS...: decide whether NAME must be (re)built.
 # Only a matching stamp with every staged output present counts as cached.
 needs_build() {
   local name="$1" key="$2" out ok=1
@@ -123,14 +123,14 @@ needs_build() {
   return 0
 }
 
-# stamp NAME KEY — record a successful component build.
+# stamp NAME KEY: record a successful component build.
 stamp() {
   mkdir -p "${STAMP_DIR}"
   printf '%s\n' "$2" > "${STAMP_DIR}/$1"
   BUILT=$((BUILT + 1))
 }
 
-# check_binary PATH — sanity-check the produced ELF. Everything is built
+# check_binary PATH: sanity-check the produced ELF. Everything is built
 # against glibc (static or dynamic) by construction; this catches accidental
 # linkage against anything that would not resolve on the target (e.g. a
 # scamper private .so if --disable-shared regressed) and logs what was built.
@@ -153,7 +153,7 @@ check_binary() {
   echo "   ${bin##*/}: ${info#*: }"
 }
 
-# clone_repo NAME URL TAG — shallow-clone URL at TAG (once per NAME+TAG) and
+# clone_repo NAME URL TAG: shallow-clone URL at TAG (once per NAME+TAG) and
 # print the checkout directory. The clone keeps enough git metadata for the
 # upstream version -ldflags (git describe / git log on the tagged commit).
 clone_repo() {
@@ -165,7 +165,7 @@ clone_repo() {
   echo "${src}"
 }
 
-# short_commit SRC_DIR — the abbreviated hash of the tagged commit, used by the
+# short_commit SRC_DIR: the abbreviated hash of the tagged commit, used by the
 # m-lab repos to stamp prometheusx.GitShortCommit (exposed as a metric label).
 short_commit() { git -C "$1" log -1 --format=%h; }
 
@@ -195,8 +195,8 @@ go_build() {
 # build_go DEST URL TAG PKG_DIR CGO [LDFLAGS_TEMPLATE [GOTOOLCHAIN]]
 # Cached build of one Go component: skipped entirely (including the clone)
 # when its recipe key matches the stamp of a previous run. LDFLAGS_TEMPLATE
-# may reference @COMMIT@ / @COMMIT_FULL@, replaced with the short/full hash of
-# the tagged commit — a pure function of TAG, hence not part of the key.
+# may reference @COMMIT@ / @COMMIT_FULL@, replaced with the short/full hash
+# of the tagged commit (a pure function of TAG, so not part of the key).
 build_go() {
   local dest="$1" url="$2" tag="$3" pkg="$4" cgo="$5" tmpl="${6:-}" toolchain="${7:-}"
   local native=""
@@ -272,15 +272,16 @@ build_go generate-schemas-traceroute "${TRACEROUTE_URL}" "${TRACEROUTE_VERSION}"
 # --disable-shared statically links scamper's internal libraries into the
 # binary, so the package can ship the single file with no private .so deps.
 # --disable-privsep drops scamper's built-in privilege separation (chroot to
-# /var/empty + setuid), which cannot work - by design - inside the
+# /var/empty + setuid), which by design cannot work inside the
 # traceroute-caller unit's systemd sandbox (read-only /var, no CAP_SYS_CHROOT
 # or CAP_SETUID, chroot filtered) and is redundant there: the unit itself
 # confines scamper, and raw sockets come from the inherited CAP_NET_RAW
 # ambient capability.
 # OpenSSL is deliberately not linked: configure would silently pick it up if
-# the dev headers happen to be installed, making the build host-dependent.
-# traceroute-caller does not use the TLS probes. There is no --without-openssl switch (AX_CHECK_OPENSSL), so point
-# the search at an empty directory instead.
+# the dev headers happen to be installed, which would make the build depend
+# on the host. traceroute-caller does not use the TLS probes. There is no
+# --without-openssl switch (AX_CHECK_OPENSSL), so point the search at an
+# empty directory instead.
 SCAMPER_CONFIGURE_FLAGS="--disable-shared --disable-privsep --with-openssl=/nonexistent"
 key="$(recipe_key "component=scamper" "dist=${SCAMPER_DIST}" \
   "vendored-in=${TRACEROUTE_VERSION}" "configure=${SCAMPER_CONFIGURE_FLAGS}" \

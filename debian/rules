@@ -19,7 +19,7 @@ override_dh_auto_build:
 	./.build/build-binaries.sh
 
 # Install the target so it is enabled (auto-start on boot) but not started at
-# install time - the operator must configure /etc/mlab/*.env first. The other
+# install time: the operator must configure /etc/mlab/*.env first. The other
 # units carry no [Install] section (dh_installsystemd only enables units that
 # have one) and are pulled in by the target, so they are only registered for
 # daemon-reload, not enabled or started individually.
@@ -33,7 +33,7 @@ override_dh_installsystemd:
 
 # The Go binaries are linked with -s -w (see .build/build-binaries.sh), which
 # leaves dh_strip nothing to do except scamper (C). Strip it, but skip the
-# dbgsym package - nothing would consume it. dwz does not apply to Go.
+# dbgsym package; nothing would consume it. dwz does not apply to Go.
 override_dh_strip:
 	dh_strip --no-automatic-dbgsym
 

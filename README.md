@@ -62,17 +62,17 @@ dpkg-buildpackage -us -uc -b
 ```
 
 (Add `-d` if Go is installed from upstream tarballs rather than the
-`golang-go` package.) Note that a locally built .deb inherits the host's
-glibc as its `libc6` dependency floor, so a package built on a newer distro
-may not install on bookworm; use the CI artifacts for anything that leaves
-your machine.
+`golang-go` package.) A locally built .deb inherits the host's glibc as its
+`libc6` dependency floor, so a package built on a newer distro may not
+install on bookworm; use the CI artifacts for anything that leaves your
+machine.
 
 The build clones each component's repository at its pinned release tag,
-builds the binaries (replicating the upstream builds' flags, plus `-s -w`
-stripping), and stages them under `binaries/`. Each component is cached with
-a recipe-keyed stamp under `binaries/.stamps/`, so re-builds only recompile
-components whose version pin
-or build flags changed; delete `binaries/` to force a full rebuild.
+builds the binaries with the upstream builds' flags plus `-s -w` stripping,
+and stages them under `binaries/`. Each component is cached with a
+recipe-keyed stamp under `binaries/.stamps/`, so rebuilds only recompile
+components whose version pin or build flags changed; delete `binaries/` to
+force a full rebuild.
 
 ## Installing and configuring
 

@@ -1,7 +1,6 @@
 #!/bin/sh
-# Write the external IP metadata files consumed by traceroute-caller. Replaces
-# traceroute-caller, which expects them as files.
-# IPV4/IPV6 come from the mlab-node EnvironmentFile.
+# Write the external IP metadata files for traceroute-caller, which expects
+# them as files. IPV4/IPV6 come from the mlab-node EnvironmentFile.
 set -eu
 
 : "${IPV4:=}"

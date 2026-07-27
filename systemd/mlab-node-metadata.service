@@ -2,7 +2,7 @@
 Description=Write external IP metadata files for traceroute-caller
 Documentation=https://github.com/m-lab/byos-debian
 PartOf=mlab-node.target
-# Materializes ${IPV4}/${IPV6} as the external-ip[v6] metadata files that
+# Writes ${IPV4}/${IPV6} to the external-ip[v6] metadata files that
 # traceroute-caller reads. Regenerated each boot (the files live on the /run
 # tmpfs).
 
