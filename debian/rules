@@ -18,6 +18,16 @@ execute_after_dh_install:
 override_dh_auto_build:
 	./.build/build-binaries.sh
 
+# root/ mirrors the installed filesystem (root/etc/... -> /etc/..., etc.) and
+# stays pristine and tracked; copy it wholesale instead of enumerating every
+# file in debian/mlab-node.install. Generated binaries are installed
+# separately, see debian/mlab-node.install. Single binary package, so there's
+# no dh_install fan-out to feed via debian/tmp: write straight into
+# debian/mlab-node, which dh_install then adds the binaries into.
+override_dh_auto_install:
+	mkdir -p debian/mlab-node
+	cp -a root/. debian/mlab-node/
+
 # Install the target so it is enabled (auto-start on boot) but not started at
 # install time: the operator must configure /etc/mlab/*.env first. The other
 # units carry no [Install] section (dh_installsystemd only enables units that

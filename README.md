@@ -28,18 +28,29 @@ upstream sources (see `.build/build-binaries.sh`).
 
 ## File layout
 
-| Path | Contents |
-|---|---|
-| `/usr/lib/mlab/` | component binaries, helper scripts, package-owned constants (`static.env`) |
-| `/etc/mlab/mlab-node.env` | configuration (non-secret) |
-| `/etc/mlab/api-key.env` | M-Lab API key (`0640 root:mlab-node`) |
-| `/etc/mlab/locate/verify.pub` | Locate token verification key |
-| `/var/lib/mlab/node/` | registration data + service-account credential |
-| `/var/lib/mlab/schemas/` | generated JSON schemas + uuid.prefix |
-| `/var/lib/mlab/resultsdir/` | measurement results awaiting upload |
-| `/var/lib/mlab/autocert/` | Let's Encrypt certificate cache |
-| `/run/mlab/sockets/` | tcpinfo / ipservice unix sockets |
-| `/usr/share/mlab/html/` | static content served by ndt-server |
+The [root](./root) directory mirrors the installed filesystem layout: a
+file at `root/foo/bar` is installed as `/foo/bar`.
+
+The binaries built by this package are installed under `/usr/lib/mlab`
+under the assumption that an operator does not need to invoke them
+directly, consistently with the [FHS][fhs-usr-lib]'s convention that
+`/usr/lib` "may also include internal binaries that are not intended
+to be executed directly by users or shell scripts."
+
+[fhs-usr-lib]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html#usrlibLibrariesForProgrammingAndPa
+
+| Path                          | Contents                                                  |
+|-------------------------------|-----------------------------------------------------------|
+| `/usr/lib/mlab/`              | binaries, scripts, package-owned constants (`static.env`) |
+| `/etc/mlab/mlab-node.env`     | configuration (non-secret)                                |
+| `/etc/mlab/api-key.env`       | M-Lab API key (`0640 root:mlab-node`)                     |
+| `/etc/mlab/locate/verify.pub` | Locate token verification key                             |
+| `/var/lib/mlab/node/`         | registration data + service-account credentials           |
+| `/var/lib/mlab/schemas/`      | generated JSON schemas + uuid.prefix                      |
+| `/var/lib/mlab/resultsdir/`   | measurement results awaiting upload                       |
+| `/var/lib/mlab/autocert/`     | Let's Encrypt certificate cache                           |
+| `/run/mlab/sockets/`          | tcpinfo / ipservice unix sockets                          |
+| `/usr/share/mlab/html/`       | static content served by ndt-server                       |
 
 ## Building the package
 
