@@ -120,3 +120,7 @@ All metrics are exposed directly on the host: 9990 ndt-server, 9991 jostler,
 9992 uuid-annotator, 9993 heartbeat,
 9994 traceroute-caller, 9995 node-exporter. ndt-server serves measurements on
 80 (cleartext) and 443 (TLS).
+
+## Test deployment (M-Lab internal)
+
+M-Lab runs this package on the `autonode-deb` VM (us-central1-c, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. A Cloud Build trigger runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml): the first step builds the .deb in a `golang:1-bookworm` container with a unique version stamp, and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it, writes `/etc/mlab/mlab-node.env` and `/etc/mlab/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.

@@ -1,0 +1,44 @@
+# Builds the mlab-node .deb and deploys it to the autonode-deb test VM.
+#
+# Trigger substitutions:
+#   _API_KEY      Autojoin API key the node registers with.
+#   _PROBABILITY  Probability (0-1) that the node is selected by Locate.
+steps:
+# Build the package. Go comes from the golang image (bookworm's golang-go is
+# too old for the pinned components), so -d skips dpkg's build-dep check,
+# mirroring .github/workflows/build-deb.yml. Building on bookworm keeps the
+# package's libc6 floor at 2.36, which installs on the VM's Ubuntu 24.04.
+- name: golang:1-bookworm
+  id: build-deb
+  entrypoint: bash
+  env:
+  - 'BUILD_ID=$BUILD_ID'
+  - 'DEBEMAIL=support@measurementlab.net'
+  - 'DEBFULLNAME=Measurement Lab'
+  args:
+  - -c
+  - |
+    set -euxo pipefail
+    apt-get update
+    apt-get install -y --no-install-recommends \
+      build-essential debhelper devscripts file
+    # Stamp a unique version so every deploy is a real package transition
+    # (~ sorts before the plain version, like the CI's ~dev snapshots).
+    dch -b --newversion "$(dpkg-parsechangelog -SVersion)~cb.$${BUILD_ID:0:8}" \
+      --distribution UNRELEASED "Cloud Build snapshot."
+    dpkg-buildpackage -us -uc -b -d
+    # dpkg-buildpackage writes to the parent of the source tree, which is not
+    # persisted between steps; move the .deb into the shared workspace.
+    mkdir -p dist && mv ../mlab-node_*.deb dist/
+
+# Deploy to the autonode-deb VM. NOTE: the IATA depends on the region where
+# the VM is deployed; our testing VM is always in us-central1, which is OMA.
+- name: us-central1-docker.pkg.dev/$PROJECT_ID/build-images/gcloud-jsonnet-cbif:1.1
+  id: deploy
+  dir: '/workspace/'
+  args: [
+    '/workspace/.build/deploy.sh $PROJECT_ID mlab ${_API_KEY} ${_PROBABILITY}'
+  ]
+
+# Building every pinned Go component from source takes a while.
+timeout: 3600s
