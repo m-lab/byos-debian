@@ -22,9 +22,12 @@ steps:
     apt-get update
     apt-get install -y --no-install-recommends \
       build-essential debhelper devscripts file
-    # Stamp a unique version so every deploy is a real package transition
-    # (~ sorts before the plain version, like the CI's ~dev snapshots).
-    dch -b --newversion "$(dpkg-parsechangelog -SVersion)~cb.$${BUILD_ID:0:8}" \
+    # Stamp a unique version so every deploy is a real package transition.
+    # "~wip" sorts above the CI's "~dev" snapshots (dpkg compares the letters)
+    # but below the plain release version, so the VM's periodic upgrade from
+    # the dev APT channel does not clobber a branch under test, and a real
+    # release still supersedes it.
+    dch -b --newversion "$(dpkg-parsechangelog -SVersion)~wip.$${BUILD_ID:0:8}" \
       --distribution UNRELEASED "Cloud Build snapshot."
     dpkg-buildpackage -us -uc -b -d
     # dpkg-buildpackage writes to the parent of the source tree, which is not
