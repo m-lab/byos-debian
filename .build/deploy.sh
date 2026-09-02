@@ -14,14 +14,17 @@ ORG=${2:?Please provide the organization (e.g., mlab): ${USAGE}}
 API_KEY=${3:?Please provide the API key: ${USAGE}}
 PROBABILITY=${4:?Please provide the probability: ${USAGE}}
 
-# The test VM is always in us-central1, which is OMA.
+# The test VM is always in us-central1, which is OMA. Its zone within the
+# region follows GCP capacity (set in terraform-support), so look it up.
 IATA="oma"
-VM_ZONE="us-central1-a"
 VM_NAME="autonode-deb"
 INTERFACE_NAME="ens4"
 INTERFACE_MAXRATE="150000000"
 UPLINK="7g"
 TYPE="virtual"
+VM_ZONE=$(gcloud --project "${PROJECT}" compute instances list \
+  --filter="name=${VM_NAME}" --format='value(zone.basename())')
+[ -n "${VM_ZONE}" ] || { echo "VM ${VM_NAME} not found in ${PROJECT}" >&2; exit 1; }
 
 LOCATE_URL="locate-dot-${PROJECT}.appspot.com"
 AUTH_URL="auth.${PROJECT}.measurementlab.net"
