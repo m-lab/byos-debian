@@ -43,7 +43,7 @@ to be executed directly by users or shell scripts."
 |-------------------------------|-----------------------------------------------------------|
 | `/usr/lib/mlab/`              | binaries, scripts, package-owned constants (`static.env`) |
 | `/etc/mlab/mlab-node.env`     | configuration (non-secret)                                |
-| `/etc/mlab/api-key.env`       | M-Lab API key (`0640 root:mlab-node`)                     |
+| `/etc/mlab/api-key.env`       | M-Lab API key (`0600 root:root`)                          |
 | `/etc/mlab/locate/verify.pub` | Locate token verification key                             |
 | `/var/lib/mlab/node/`         | registration data + service-account credentials           |
 | `/var/lib/mlab/schemas/`      | generated JSON schemas + uuid.prefix                      |
