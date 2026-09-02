@@ -123,10 +123,11 @@ All metrics are exposed directly on the host: 9990 ndt-server, 9991 jostler,
 
 ## APT repositories
 
-CI publishes the package to Artifact Registry APT repositories, one per M-Lab project tier, all named `mlab-node` in `us-central1`: pushes to `main` upload the `~dev` snapshot to `mlab-sandbox` (the dev channel), and `v*` tags upload the release to `mlab-staging` and `mlab-autojoin` (stable). See the `publish-*` jobs in [`build-deb.yml`](.github/workflows/build-deb.yml) and [`.build/apt-publish.sh`](.build/apt-publish.sh). The repositories are private for now; a client reads them with `apt-transport-artifact-registry` and the repository signing key from `https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg`:
+CI publishes the package to Artifact Registry APT repositories, one per M-Lab project tier, all named `mlab-node` in `us-central1`: pushes to `main` upload the `~dev` snapshot to `mlab-sandbox` (the dev channel), and `v*` tags upload the release to `mlab-staging` and `mlab-autojoin` (stable). See the `publish-*` jobs in [`build-deb.yml`](.github/workflows/build-deb.yml) and [`.build/apt-publish.sh`](.build/apt-publish.sh). The repositories are private for now; a client reads them with `apt-transport-artifact-registry` and the repository signing key, which is ASCII-armored despite its URL and so must be saved with a `.asc` extension for `signed-by=` to accept it:
 
 ```
-deb [signed-by=/etc/apt/keyrings/artifact-registry.gpg] ar+https://us-central1-apt.pkg.dev/projects/<project> mlab-node main
+curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg -o /etc/apt/keyrings/artifact-registry.asc
+deb [signed-by=/etc/apt/keyrings/artifact-registry.asc] ar+https://us-central1-apt.pkg.dev/projects/<project> mlab-node main
 ```
 
 Once the stable repository is made public, the same line without the `ar+` transport prefix works with plain https.
