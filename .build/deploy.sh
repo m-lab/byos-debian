@@ -47,9 +47,14 @@ gcloud --project "${PROJECT}" compute ssh --zone "${VM_ZONE}" \
     set -euo pipefail
 
     # Install/upgrade the package. --allow-downgrades because Cloud Build
-    # version stamps are unique but not monotonic.
+    # version stamps are unique but not monotonic. Noninteractive: the
+    # package asks its configuration through debconf, and without a
+    # terminal debconf would otherwise fall back to reading answers from
+    # stdin, i.e. from the rest of this script. The defaults it takes are
+    # overwritten below.
     sudo apt-get update
-    sudo apt-get install -y --allow-downgrades ~/mlab-node.deb
+    sudo env DEBIAN_FRONTEND=noninteractive \
+      apt-get install -y --allow-downgrades ~/mlab-node.deb
 
     # Find the external v4 and v6 addresses for this machine. IPV6 is
     # optional, so do not fail if there is no v6 connectivity.

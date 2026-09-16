@@ -21,7 +21,9 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  curl,
+ iproute2,
  kmod,
+ unattended-upgrades,
 Description: M-Lab BYOS node measurement stack
  Native systemd packaging of the M-Lab BYOS Network Diagnostic Tool
  (NDT) measurement platform.

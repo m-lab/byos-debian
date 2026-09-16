@@ -124,14 +124,24 @@ jobs:
 
       # The postinst guards every systemd interaction on /run/systemd/system,
       # so installing in the build container exercises the maintainer scripts
-      # (sysusers, tmpfiles, enable) without an init system. Installing on
-      # bookworm itself proves the computed libc6 floor is satisfiable on the
-      # oldest supported target.
+      # (debconf, sysusers, tmpfiles, enable) without an init system.
+      # Installing on bookworm itself proves the computed libc6 floor is
+      # satisfiable on the oldest supported target. Preseeding two answers
+      # checks the debconf -> /etc/mlab path; the rest take the defaults
+      # (unattended upgrades on) or the config script's guesses.
       - name: Install smoke test
         run: |
-          apt-get install -y ../mlab-node_*.deb
+          echo "mlab-node mlab-node/organization string ci" | debconf-set-selections
+          echo "mlab-node mlab-node/uplink string 10g" | debconf-set-selections
+          DEBIAN_FRONTEND=noninteractive apt-get install -y ../mlab-node_*.deb
           dpkg -V mlab-node
           echo "Depends: $(dpkg-deb -f ../mlab-node_*.deb Depends)"
+          grep -qx 'ORGANIZATION=ci' /etc/mlab/mlab-node.env
+          grep -qx 'UPLINK=10g' /etc/mlab/mlab-node.env
+          grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab/mlab-node.env
+          test "$(stat -c %a /etc/mlab/api-key.env)" = 600
+          apt-config dump | grep -q 'Unattended-Upgrade::Origins-Pattern:: "origin=mlab-node,label=mlab-node";'
+          sed -n '/^[A-Z]/p' /etc/mlab/mlab-node.env
 
       - name: Collect artifacts
         run: mkdir -p dist && mv ../mlab-node_* dist/
