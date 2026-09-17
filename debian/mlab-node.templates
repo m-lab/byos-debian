@@ -15,13 +15,15 @@ Description: M-Lab API key:
 
 Template: mlab-node/iata
 Type: string
-Description: IATA code of the nearest international airport:
- The 3-letter IATA code of the international airport nearest to this
- machine, in lowercase (e.g. "lhr", "jfk"). M-Lab groups nodes into metros
- by this code.
+Description: IATA code of the nearest large international airport:
+ The 3-letter IATA code of the nearest large international airport, in
+ lowercase (e.g. "lhr", "jfk", "gru"). M-Lab names its metros after
+ airports: pick the largest international airport serving this machine's
+ metropolitan area, not the closest airfield (Denver is "den", not the
+ nearer "bfk").
  .
- The proposed value was estimated from this machine's public IP address
- with the M-Lab Autojoin lookup service; check it.
+ A list of international airports by country, with their IATA codes:
+ https://en.wikipedia.org/wiki/List_of_international_airports_by_country
 
 Template: mlab-node/probability
 Type: string

@@ -98,13 +98,13 @@ terminal dialogs) and, once every required setting has a value, starts the
 whole stack (it is also enabled to start on boot). Every question is
 pre-filled: with the value already in `/etc/mlab/*.env` when there is one,
 otherwise, on a fresh install, with a guess derived from the host. Check the
-guesses, in particular the IATA code.
+guesses.
 
 | Setting | Asked as | Pre-filled with |
 |---|---|---|
 | `ORGANIZATION` | organization name | (no guess) |
 | `API_KEY` | API key | (no guess; never stored in debconf) |
-| `IATA` | nearest airport code | the [Autojoin lookup][lookup] for the machine's public IP |
+| `IATA` | nearest large international airport | (no guess: a nearest-airport lookup proposes airfields; the dialog links a list of international airports) |
 | `PROBABILITY` | load-balancer probability | `0.1` |
 | `INTERFACE_NAME` | measurement interface | the default route's interface |
 | `UPLINK` | uplink speed | the link speed the interface reports (`/sys/class/net/*/speed`), if any |
@@ -113,8 +113,6 @@ guesses, in particular the IATA code.
 | `IPV6` | public IPv6 address | likewise, over IPv6; optional |
 | `TYPE` | machine type | `virtual`/`physical` per `systemd-detect-virt` |
 | (unattended upgrades) | yes/no, default yes | see [Unattended upgrades](#unattended-upgrades) |
-
-[lookup]: https://autojoin-dot-mlab-autojoin.appspot.com/autojoin/v0/lookup
 
 Answers are validated (IATA and uplink are lowercased for you); an invalid
 one is explained and asked again. To go through the questions again, with
