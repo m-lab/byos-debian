@@ -7,6 +7,13 @@
 # them as CI artifacts. Pushing a v* tag additionally creates a GitHub
 # Release with the .debs attached, versioned from the tag.
 #
+# Publishing: pushes to main (and manual dispatches) upload the ~dev snapshot
+# to the mlab-sandbox Artifact Registry APT repository, which the sandbox test
+# VM tracks; v* tags upload the release to mlab-staging and mlab-autojoin.
+# Authentication goes through m-lab's shared GitHub Workload Identity pool,
+# bound directly to this repository on each APT repository (no service account
+# keys). Forked PRs never reach these jobs: they have no id-token permission.
+#
 # Caching: binaries/ carries per-component stamps (see
 # .build/build-binaries.sh), so a restored cache rebuilds only the components
 # whose pins or build flags changed; the Go module/build caches make even a
@@ -20,9 +27,11 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+# Never cancel main or tag runs: their publish jobs have side effects, and a
+# cancellation between the two uploads would leave a single-arch version.
 concurrency:
   group: build-deb-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
@@ -143,7 +152,8 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: github.ref_type == 'tag'
+    # Same guard as publish-stable: only v* tag pushes create a release.
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -163,3 +173,60 @@ jobs:
             --repo "${GITHUB_REPOSITORY}" \
             --title "${GITHUB_REF_NAME}" \
             --generate-notes
+
+  publish-dev:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: mlab-node-deb-*
+          merge-multiple: true
+          path: dist
+
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: mlab-sandbox
+          workload_identity_provider: projects/808951263862/locations/global/workloadIdentityPools/github/providers/m-lab-repos
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Upload to the mlab-sandbox APT repository
+        run: .build/apt-publish.sh mlab-sandbox dist/*.deb
+
+  publish-stable:
+    # Push events on tags are already filtered to v* above; requiring a push
+    # keeps a workflow_dispatch on an arbitrary tag from publishing a release.
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        project: [mlab-staging, mlab-autojoin]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: mlab-node-deb-*
+          merge-multiple: true
+          path: dist
+
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ matrix.project }}
+          workload_identity_provider: projects/808951263862/locations/global/workloadIdentityPools/github/providers/m-lab-repos
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Upload to the ${{ matrix.project }} APT repository
+        run: .build/apt-publish.sh "${{ matrix.project }}" dist/*.deb

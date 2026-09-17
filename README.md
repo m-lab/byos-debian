@@ -121,6 +121,19 @@ All metrics are exposed directly on the host: 9990 ndt-server, 9991 jostler,
 9994 traceroute-caller, 9995 node-exporter. ndt-server serves measurements on
 80 (cleartext) and 443 (TLS).
 
+## APT repositories
+
+CI publishes the package to Artifact Registry APT repositories, one per M-Lab project tier, all named `mlab-node` in `us-central1`: pushes to `main` upload the `~dev` snapshot to `mlab-sandbox` (the dev channel), and `v*` tags upload the release to `mlab-staging` and `mlab-autojoin` (stable). See the `publish-*` jobs in [`build-deb.yml`](.github/workflows/build-deb.yml) and [`.build/apt-publish.sh`](.build/apt-publish.sh). The repositories are private for now; a client reads them with `apt-transport-artifact-registry` and the repository signing key, which is ASCII-armored despite its URL and so must be saved with a `.asc` extension for `signed-by=` to accept it:
+
+```
+curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg -o /etc/apt/keyrings/artifact-registry.asc
+deb [signed-by=/etc/apt/keyrings/artifact-registry.asc] ar+https://us-central1-apt.pkg.dev/projects/<project> mlab-node main
+```
+
+Once the stable repository is made public, the same line without the `ar+` transport prefix works with plain https.
+
 ## Test deployment (M-Lab internal)
 
-M-Lab runs this package on the `autonode-deb` VM (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. A Cloud Build trigger runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml): the first step builds the .deb in a `golang:1-bookworm` container with a unique version stamp, and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it, writes `/etc/mlab/mlab-node.env` and `/etc/mlab/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.
+M-Lab runs this package on the `autonode-deb` VM (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. The VM tracks the sandbox dev channel: its startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade.
+
+Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it, writes `/etc/mlab/mlab-node.env` and `/etc/mlab/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.
