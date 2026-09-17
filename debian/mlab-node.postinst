@@ -38,7 +38,7 @@ if [ "$1" = "configure" ]; then
     [ -e "$ENV_FILE" ] || install -m 0644 -o root -g root "$TEMPLATE_DIR/mlab-node.env" "$ENV_FILE"
     [ -e "$KEY_FILE" ] || install -m 0600 -o root -g root "$TEMPLATE_DIR/api-key.env" "$KEY_FILE"
 
-    for pair in organization:ORGANIZATION iata:IATA probability:PROBABILITY \
+    for pair in iata:IATA probability:PROBABILITY \
                 interface-name:INTERFACE_NAME uplink:UPLINK \
                 interface-maxrate:INTERFACE_MAXRATE ipv4:IPV4 ipv6:IPV6 type:TYPE; do
         db_get "mlab-node/${pair%%:*}"
@@ -95,7 +95,7 @@ db_stop
 
 if [ "$1" = "configure" ]; then
     missing=""
-    for key in ORGANIZATION IATA PROBABILITY INTERFACE_NAME UPLINK INTERFACE_MAXRATE IPV4 TYPE; do
+    for key in IATA PROBABILITY INTERFACE_NAME UPLINK INTERFACE_MAXRATE IPV4 TYPE; do
         [ -n "$(env_value "$key" "$ENV_FILE")" ] || missing="$missing $key"
     done
     [ -n "$(env_value API_KEY "$KEY_FILE")" ] || missing="$missing API_KEY"

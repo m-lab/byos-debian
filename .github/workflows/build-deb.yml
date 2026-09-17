@@ -131,12 +131,12 @@ jobs:
       # (unattended upgrades on) or the config script's guesses.
       - name: Install smoke test
         run: |
-          echo "mlab-node mlab-node/organization string ci" | debconf-set-selections
+          echo "mlab-node mlab-node/iata string oma" | debconf-set-selections
           echo "mlab-node mlab-node/uplink string 10g" | debconf-set-selections
           DEBIAN_FRONTEND=noninteractive apt-get install -y ../mlab-node_*.deb
           dpkg -V mlab-node
           echo "Depends: $(dpkg-deb -f ../mlab-node_*.deb Depends)"
-          grep -qx 'ORGANIZATION=ci' /etc/mlab/mlab-node.env
+          grep -qx 'IATA=oma' /etc/mlab/mlab-node.env
           grep -qx 'UPLINK=10g' /etc/mlab/mlab-node.env
           grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab/mlab-node.env
           test "$(stat -c %a /etc/mlab/api-key.env)" = 600

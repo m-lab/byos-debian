@@ -102,7 +102,6 @@ guesses.
 
 | Setting | Asked as | Pre-filled with |
 |---|---|---|
-| `ORGANIZATION` | organization name | (no guess) |
 | `API_KEY` | API key | (no guess; never stored in debconf) |
 | `IATA` | nearest large international airport | (no guess: a nearest-airport lookup proposes airfields; the dialog links a list of international airports) |
 | `PROBABILITY` | load-balancer probability | `0.1` |
@@ -136,7 +135,6 @@ preseeded answer take the default or the guess:
 
 ```sh
 sudo debconf-set-selections <<EOF
-mlab-node mlab-node/organization string myorg
 mlab-node mlab-node/api-key password <api key>
 mlab-node mlab-node/iata string lhr
 mlab-node mlab-node/uplink string 10g
@@ -148,6 +146,13 @@ sudo env DEBIAN_FRONTEND=noninteractive apt install ./mlab-node_1.1.0_amd64.deb
 
 The question names are listed in `debian/mlab-node.templates`. On upgrades
 nothing is asked: the existing configuration is kept as is.
+
+There is no organization setting: the organization is a property of the API
+key on the Autojoin side, and the node learns it from the hostname it is
+registered under (`<machine>.<org>.<project>.measurement-lab.org`).
+`mlab-node-register-ready.service` exports it as `ORGANIZATION` in
+`/run/mlab/metadata/registration.env` for jostler (GCS path) and ndt-server
+(metrics label).
 
 ## Unattended upgrades
 

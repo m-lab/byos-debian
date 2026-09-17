@@ -14,6 +14,8 @@ BindsTo=mlab-node-register.service
 [Service]
 Type=exec
 EnvironmentFile=/etc/mlab/mlab-node.env
+# ORGANIZATION, derived from the registration by register-ready.
+EnvironmentFile=/run/mlab/metadata/registration.env
 # Clear any stale tcpinfo socket left by a previous instance before binding.
 ExecStartPre=/bin/rm -f /run/mlab/sockets/events.sock
 ExecStart=/usr/lib/mlab/ndt-server \

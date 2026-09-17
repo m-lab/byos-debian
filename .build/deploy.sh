@@ -8,11 +8,10 @@
 # Cloud Build logs.
 set -euo pipefail
 
-USAGE="$0 <project> <organization> <api-key> <probability>"
+USAGE="$0 <project> <api-key> <probability>"
 PROJECT=${1:?Please provide the GCP project (e.g., mlab-sandbox): ${USAGE}}
-ORG=${2:?Please provide the organization (e.g., mlab): ${USAGE}}
-API_KEY=${3:?Please provide the API key: ${USAGE}}
-PROBABILITY=${4:?Please provide the probability: ${USAGE}}
+API_KEY=${2:?Please provide the API key: ${USAGE}}
+PROBABILITY=${3:?Please provide the probability: ${USAGE}}
 
 # The test VM is always in us-central1, which is OMA. Its zone within the
 # region follows GCP capacity (set in terraform-support), so look it up.
@@ -66,7 +65,6 @@ gcloud --project "${PROJECT}" compute ssh --zone "${VM_ZONE}" \
     # NOTE: -upload-schema stays false (the package default): schema uploads
     # are manual and intentional, never part of an automated deployment.
     sudo tee /etc/mlab/mlab-node.env >/dev/null <<EOC
-ORGANIZATION=${ORG}
 IATA=${IATA}
 PROBABILITY=${PROBABILITY}
 INTERFACE_NAME=${INTERFACE_NAME}

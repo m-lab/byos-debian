@@ -6,7 +6,9 @@ After=mlab-node-register.service
 BindsTo=mlab-node-register.service
 # This oneshot gates every dependent component on a successful registration
 # (the register-node :8001/ready endpoint), so the hostname, registration.json
-# and service-account files exist before anything reads them.
+# and service-account files exist before anything reads them. It then exports
+# what components need from the registration as environment
+# (/run/mlab/metadata/registration.env, currently ORGANIZATION).
 
 [Service]
 Type=oneshot
@@ -16,10 +18,12 @@ RemainAfterExit=yes
 ExecStart=/usr/bin/curl -fsS -o /dev/null \
   --retry 60 --retry-delay 2 --retry-connrefused --retry-all-errors \
   http://localhost:8001/ready
+ExecStartPost=/usr/lib/mlab/write-registration-env
 
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
+ReadWritePaths=/run/mlab/metadata
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

@@ -10,6 +10,10 @@ mlab-node (1.1.0) unstable; urgency=medium
     the postinst from the answers (they are no longer conffiles); existing
     files and their extra settings are kept and edited in place.
   * Start the stack automatically once the configuration is complete.
+  * Drop the ORGANIZATION setting: the organization belongs to the API key
+    on the Autojoin side. register-ready now derives it from the registered
+    hostname into /run/mlab/metadata/registration.env for jostler and
+    ndt-server.
   * Ask whether to enable unattended upgrades (default: yes) for the
     distribution's security updates and the mlab-node package, via
     /etc/apt/apt.conf.d/52mlab-node-unattended-upgrades. Depend on

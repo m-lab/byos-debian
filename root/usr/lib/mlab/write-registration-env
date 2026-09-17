@@ -1,0 +1,17 @@
+#!/bin/sh
+# Export values derived from the registration as an EnvironmentFile for the
+# units that need them. Today that is ORGANIZATION: the organization is a
+# property of the API key on the Autojoin side, nothing is configured locally,
+# and the node learns it from the hostname Autojoin registered it under,
+# <service>-<site>-<machine>.<org>.<project>.measurement-lab.org. Runs from
+# mlab-node-register-ready.service once registration succeeded, so the
+# hostname file exists.
+set -eu
+
+hostname=$(cat /var/lib/mlab/node/hostname)
+org=$(printf '%s' "${hostname}" | cut -s -d. -f2)
+if [ -z "${org}" ]; then
+  echo "mlab-node: cannot derive the organization from hostname '${hostname}'" >&2
+  exit 1
+fi
+printf 'ORGANIZATION=%s\n' "${org}" > /run/mlab/metadata/registration.env

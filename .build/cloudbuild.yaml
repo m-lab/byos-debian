@@ -37,7 +37,7 @@ steps:
   id: deploy
   dir: '/workspace/'
   args: [
-    '/workspace/.build/deploy.sh $PROJECT_ID mlab ${_API_KEY} ${_PROBABILITY}'
+    '/workspace/.build/deploy.sh $PROJECT_ID ${_API_KEY} ${_PROBABILITY}'
   ]
 
 # Building every pinned Go component from source takes a while.

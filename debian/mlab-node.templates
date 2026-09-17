@@ -1,13 +1,7 @@
-Template: mlab-node/organization
-Type: string
-Description: M-Lab organization name:
- The organization name assigned by M-Lab to your deployment. It is part of
- the node's hostname and appears in the published measurement data.
-
 Template: mlab-node/api-key
 Type: password
 Description: M-Lab API key:
- The API key provided by M-Lab for this organization. It is written to
+ The API key provided by M-Lab for your organization. It is written to
  /etc/mlab/api-key.env (readable by root only) and is not kept in the
  debconf database.
  .
