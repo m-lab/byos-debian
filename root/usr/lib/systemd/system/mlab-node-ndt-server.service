@@ -16,7 +16,7 @@ Type=exec
 EnvironmentFile=/etc/mlab/mlab-node.env
 # Clear any stale tcpinfo socket left by a previous instance before binding.
 ExecStartPre=/bin/rm -f /run/mlab/sockets/events.sock
-ExecStart=/usr/lib/mlab/ndt-server \
+ExecStart=/usr/libexec/mlab/ndt-server \
   -uuid-prefix-file=/var/lib/mlab/schemas/uuid.prefix \
   -datadir=/var/lib/mlab/resultsdir/ndt \
   -htmldir=/usr/share/mlab/html \

@@ -10,10 +10,10 @@ BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec
-EnvironmentFile=/usr/lib/mlab/static.env
+EnvironmentFile=/usr/share/mlab/static.env
 EnvironmentFile=/etc/mlab/mlab-node.env
 Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab/node/service-account-autojoin.json
-ExecStart=/usr/lib/mlab/jostler \
+ExecStart=/usr/libexec/mlab/jostler \
   -mlab-node-name=@/var/lib/mlab/node/hostname \
   -gcs-bucket=archive-${PROJECT} \
   -gcs-data-dir=autoload/v2 \

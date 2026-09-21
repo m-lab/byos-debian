@@ -13,9 +13,9 @@ BindsTo=mlab-node-register.service
 [Service]
 Type=exec
 EnvironmentFile=/etc/mlab/mlab-node.env
-ExecStartPre=/usr/lib/mlab/wait-socket /run/mlab/sockets/events.sock /run/mlab/sockets/uuid-annotator.sock
-ExecStart=/usr/lib/mlab/traceroute-caller \
-  -scamper.bin=/usr/lib/mlab/scamper \
+ExecStartPre=/usr/libexec/mlab/wait-socket /run/mlab/sockets/events.sock /run/mlab/sockets/uuid-annotator.sock
+ExecStart=/usr/libexec/mlab/traceroute-caller \
+  -scamper.bin=/usr/libexec/mlab/scamper \
   -prometheusx.listen-address=:9994 \
   -traceroute-output=/var/lib/mlab/resultsdir/ndt/scamper2 \
   -hopannotation-output=/var/lib/mlab/resultsdir/ndt/hopannotation2 \

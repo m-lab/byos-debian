@@ -7,7 +7,7 @@ PartOf=mlab-node.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/lib/mlab/gen-uuid-prefix
+ExecStart=/usr/libexec/mlab/gen-uuid-prefix
 
 # --- hardening ---
 User=mlab-node

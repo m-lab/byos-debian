@@ -10,7 +10,7 @@ PartOf=mlab-node.target
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/etc/mlab/mlab-node.env
-ExecStart=/usr/lib/mlab/write-metadata
+ExecStart=/usr/libexec/mlab/write-metadata
 
 # --- hardening ---
 User=mlab-node

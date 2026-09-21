@@ -7,7 +7,7 @@ PartOf=mlab-node.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/lib/mlab/generate-schemas-traceroute \
+ExecStart=/usr/libexec/mlab/generate-schemas-traceroute \
   -scamper2=/var/lib/mlab/schemas/scamper2.json \
   -hopannotation2=/var/lib/mlab/schemas/hopannotation2.json
 
