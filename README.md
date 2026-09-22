@@ -102,7 +102,7 @@ guesses.
 
 | Setting | Asked as | Pre-filled with |
 |---|---|---|
-| `API_KEY` | API key | (no guess; never stored in debconf) |
+| `API_KEY` | API key, echoed as typed | (no guess; cleared from debconf once written) |
 | `IATA` | nearest large international airport | (no guess: a nearest-airport lookup proposes airfields; the dialog links a list of international airports) |
 | `PROBABILITY` | load-balancer probability | `0.1` |
 | `INTERFACE_NAME` | measurement interface | the default route's interface |
@@ -113,7 +113,7 @@ guesses.
 | `TYPE` | machine type | `virtual`/`physical` per `systemd-detect-virt` |
 | (unattended upgrades) | yes/no, default yes | see [Unattended upgrades](#unattended-upgrades) |
 
-Answers are validated (IATA and uplink are lowercased for you); an invalid
+Answers are validated (uplink is lowercased for you); an invalid
 one is explained and asked again. To go through the questions again, with
 the current values pre-filled:
 
@@ -135,7 +135,7 @@ preseeded answer take the default or the guess:
 
 ```sh
 sudo debconf-set-selections <<EOF
-mlab-node mlab-node/api-key password <api key>
+mlab-node mlab-node/api-key string <api key>
 mlab-node mlab-node/iata string lhr
 mlab-node mlab-node/uplink string 10g
 mlab-node mlab-node/type select physical

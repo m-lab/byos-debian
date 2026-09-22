@@ -1,9 +1,10 @@
 Template: mlab-node/api-key
-Type: password
+Type: string
 Description: M-Lab API key:
- The API key provided by M-Lab for your organization. It is written to
- /etc/mlab/api-key.env (readable by root only) and is not kept in the
- debconf database.
+ The API key provided by M-Lab for your organization. It is shown as you
+ type it (it is long and random, so echoing it helps) and is written to
+ /etc/mlab/api-key.env, readable by root only. It is not kept in the debconf
+ database.
  .
  Leave it empty to keep the value already in /etc/mlab/api-key.env.
 
@@ -11,10 +12,9 @@ Template: mlab-node/iata
 Type: string
 Description: IATA code of the nearest large international airport:
  The 3-letter IATA code of the nearest large international airport, in
- lowercase (e.g. "lhr", "jfk", "gru"). M-Lab names its metros after
- airports: pick the largest international airport serving this machine's
- metropolitan area, not the closest airfield (Denver is "den", not the
- nearer "bfk").
+ either case (e.g. LHR, JFK, GRU). M-Lab names its metros after airports:
+ pick the largest international airport serving this machine's
+ metropolitan area, not the closest airfield.
  .
  A list of international airports by country, with their IATA codes:
  https://en.wikipedia.org/wiki/List_of_international_airports_by_country
