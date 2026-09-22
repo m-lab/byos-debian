@@ -12,7 +12,7 @@ Template: mlab-node/iata
 Type: string
 Description: IATA code of the nearest large international airport:
  The 3-letter IATA code of the nearest large international airport, in
- either case (e.g. LHR, JFK, GRU). M-Lab names its metros after airports:
+ upper or lower case (e.g. LHR or lhr). M-Lab names its metros after airports:
  pick the largest international airport serving this machine's
  metropolitan area, not the closest airfield.
  .
