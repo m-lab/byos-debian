@@ -19,9 +19,12 @@ steps:
   - -c
   - |
     set -euxo pipefail
+    # debhelper from bookworm-backports: see debian/rules.
+    echo "deb http://deb.debian.org/debian bookworm-backports main" \
+      > /etc/apt/sources.list.d/backports.list
     apt-get update
-    apt-get install -y --no-install-recommends \
-      build-essential debhelper devscripts file
+    apt-get install -y --no-install-recommends build-essential devscripts file
+    apt-get install -y --no-install-recommends -t bookworm-backports debhelper
     # Stamp a unique version so every deploy is a real package transition
     # (~ sorts before the plain version, like the CI's ~dev snapshots).
     dch -b --newversion "$(dpkg-parsechangelog -SVersion)~cb.$${BUILD_ID:0:8}" \

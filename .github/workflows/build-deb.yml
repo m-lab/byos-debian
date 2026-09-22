@@ -45,12 +45,16 @@ jobs:
       DEBEMAIL: support@measurementlab.net
       DEBFULLNAME: Measurement Lab
     steps:
+      # debhelper comes from bookworm-backports: bookworm's 13.11.4 does not
+      # look for units in usr/lib/systemd/system (see debian/rules).
       - name: Install build dependencies
         run: |
+          echo "deb http://deb.debian.org/debian bookworm-backports main" \
+            > /etc/apt/sources.list.d/backports.list
           apt-get update
           apt-get install -y --no-install-recommends \
-            build-essential debhelper devscripts lintian git file \
-            ca-certificates curl
+            build-essential devscripts lintian git file ca-certificates curl
+          apt-get install -y --no-install-recommends -t bookworm-backports debhelper
 
       - uses: actions/checkout@v7
 

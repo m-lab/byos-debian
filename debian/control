@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Measurement Lab <support@measurementlab.net>
 Build-Depends:
  debhelper-compat (= 13),
+ debhelper (>= 13.14~),
  file,
  golang-go (>= 2:1.21~),
  git,

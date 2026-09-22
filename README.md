@@ -66,7 +66,9 @@ tag creates a GitHub Release with the .debs attached; production machines
 should install from Releases.
 
 Local builds work too and use the same script. You'll need
-`dpkg-buildpackage`, debhelper, a recent Go, `git`, `file`, and a C toolchain
+`dpkg-buildpackage`, debhelper 13.14 or newer (older versions ignore
+units under `/usr/lib/systemd/system`; on bookworm take it from backports), a
+recent Go, `git`, `file`, and a C toolchain
 (for scamper and the cgo builds), plus network access to clone the pinned
 sources and fetch Go modules:
 
