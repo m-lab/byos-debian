@@ -7,9 +7,11 @@
 # them as CI artifacts. Pushing a v* tag additionally creates a GitHub
 # Release with the .debs attached, versioned from the tag.
 #
-# Publishing: pushes to main (and manual dispatches) upload the ~dev snapshot
-# to the mlab-sandbox Artifact Registry APT repository, which the sandbox test
-# VM tracks; v* tags upload the release to mlab-staging and mlab-autojoin.
+# Publishing follows M-Lab's project tiers: pushes to main upload the ~dev
+# snapshot to the mlab-staging Artifact Registry APT repository, which the
+# staging autonode-deb VM tracks; manual dispatches upload it to mlab-sandbox
+# instead; v* tags upload the release to mlab-autojoin. Branches under test
+# reach the sandbox VM through Cloud Build (.build/cloudbuild.yaml), not APT.
 # Authentication goes through m-lab's shared GitHub Workload Identity pool,
 # bound directly to this repository on each APT repository (no service account
 # keys). Forked PRs never reach these jobs: they have no id-token permission.
@@ -174,13 +176,17 @@ jobs:
             --title "${GITHUB_REF_NAME}" \
             --generate-notes
 
-  publish-dev:
+  publish-snapshot:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
+    # Main tracks staging. A manual dispatch always targets sandbox, so any
+    # branch can be pushed to the dev repository without touching staging.
+    env:
+      PROJECT: ${{ github.event_name == 'workflow_dispatch' && 'mlab-sandbox' || 'mlab-staging' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -192,26 +198,24 @@ jobs:
 
       - uses: google-github-actions/auth@v2
         with:
-          project_id: mlab-sandbox
+          project_id: ${{ env.PROJECT }}
           workload_identity_provider: projects/808951263862/locations/global/workloadIdentityPools/github/providers/m-lab-repos
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      - name: Upload to the mlab-sandbox APT repository
-        run: .build/apt-publish.sh mlab-sandbox dist/*.deb
+      - name: Upload to the ${{ env.PROJECT }} APT repository
+        run: .build/apt-publish.sh "${PROJECT}" dist/*.deb
 
   publish-stable:
     # Push events on tags are already filtered to v* above; requiring a push
     # keeps a workflow_dispatch on an arbitrary tag from publishing a release.
+    # Releases go to production (mlab-autojoin) only: staging follows main.
     if: github.event_name == 'push' && github.ref_type == 'tag'
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
-    strategy:
-      matrix:
-        project: [mlab-staging, mlab-autojoin]
     steps:
       - uses: actions/checkout@v7
 
@@ -223,10 +227,10 @@ jobs:
 
       - uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ matrix.project }}
+          project_id: mlab-autojoin
           workload_identity_provider: projects/808951263862/locations/global/workloadIdentityPools/github/providers/m-lab-repos
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      - name: Upload to the ${{ matrix.project }} APT repository
-        run: .build/apt-publish.sh "${{ matrix.project }}" dist/*.deb
+      - name: Upload to the mlab-autojoin APT repository
+        run: .build/apt-publish.sh mlab-autojoin dist/*.deb
