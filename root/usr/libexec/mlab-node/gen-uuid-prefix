@@ -4,6 +4,6 @@
 # scheme the upstream ndt-server deployments use.
 set -eu
 
-prefix_file="/var/lib/mlab/schemas/uuid.prefix"
+prefix_file="/var/lib/mlab-node/schemas/uuid.prefix"
 btime="$(awk '/^btime / {print $2}' /proc/stat)"
 printf '%s_%s' "$(hostname)" "${btime}" > "${prefix_file}"

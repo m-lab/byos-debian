@@ -13,14 +13,14 @@ BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec
-EnvironmentFile=/usr/share/mlab/static.env
-EnvironmentFile=/etc/mlab/mlab-node.env
-EnvironmentFile=/etc/mlab/api-key.env
-ExecStart=/usr/libexec/mlab/heartbeat \
+EnvironmentFile=/usr/share/mlab-node/static.env
+EnvironmentFile=/etc/mlab-node/node.env
+EnvironmentFile=/etc/mlab-node/api-key.env
+ExecStart=/usr/libexec/mlab-node/heartbeat \
   -prometheusx.listen-address=:9993 \
   -experiment=ndt \
-  -hostname=@/var/lib/mlab/node/hostname \
-  -registration-url=file:///var/lib/mlab/node/registration.json \
+  -hostname=@/var/lib/mlab-node/node/hostname \
+  -registration-url=file:///var/lib/mlab-node/node/registration.json \
   -heartbeat-url=wss://${LOCATE_URL}/v2/platform/heartbeat-jwt \
   -api-key=${API_KEY} \
   -token-exchange-url=https://${AUTH_URL}/v0/token/autojoin \

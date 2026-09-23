@@ -29,7 +29,7 @@ override_dh_auto_install:
 	cp -a root/. debian/mlab-node/
 
 # Install the target so it is enabled (auto-start on boot) but not started at
-# install time: the operator must configure /etc/mlab/*.env first. The other
+# install time: the operator must configure /etc/mlab-node/*.env first. The other
 # units carry no [Install] section (dh_installsystemd only enables units that
 # have one) and are pulled in by the target, so they are only registered for
 # daemon-reload, not enabled or started individually.
