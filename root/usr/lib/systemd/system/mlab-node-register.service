@@ -13,10 +13,10 @@ StartLimitBurst=5
 
 [Service]
 Type=exec
-EnvironmentFile=/usr/lib/mlab/static.env
+EnvironmentFile=/usr/share/mlab/static.env
 EnvironmentFile=/etc/mlab/mlab-node.env
 EnvironmentFile=/etc/mlab/api-key.env
-ExecStart=/usr/lib/mlab/autojoin-register \
+ExecStart=/usr/libexec/mlab/autojoin-register \
   -endpoint=https://autojoin-dot-${PROJECT}.appspot.com/autojoin/v0/node/register \
   -key=${API_KEY} \
   -service=ndt \

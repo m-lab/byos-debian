@@ -8,15 +8,15 @@ systemd service, confined with systemd's own sandboxing directives.
 
 The `mlab-node` package installs and runs the following systemd services:
 
-| Service | Unit |
-|---|---|
-| Node registration (Autojoin API) | `mlab-node-register.service` |
-| NDT7 measurement server | `mlab-node-ndt-server.service` |
-| Heartbeat (Locate API) | `mlab-node-heartbeat.service` |
-| UUID annotator | `mlab-node-uuid-annotator.service` |
-| Jostler (GCS archival) | `mlab-node-jostler.service` |
-| Traceroute caller (scamper) | `mlab-node-traceroute-caller.service` |
-| Prometheus node exporter | `mlab-node-node-exporter.service` |
+| Service                          | Unit                                  |
+|----------------------------------|---------------------------------------|
+| Node registration (Autojoin API) | `mlab-node-register.service`          |
+| NDT7 measurement server          | `mlab-node-ndt-server.service`        |
+| Heartbeat (Locate API)           | `mlab-node-heartbeat.service`         |
+| UUID annotator                   | `mlab-node-uuid-annotator.service`    |
+| Jostler (GCS archival)           | `mlab-node-jostler.service`           |
+| Traceroute caller (scamper)      | `mlab-node-traceroute-caller.service` |
+| Prometheus node exporter         | `mlab-node-node-exporter.service`     |
 
 There are also a few one-shot units for schema generation, the UUID prefix,
 BBR, and external-IP metadata. The whole stack is started and stopped as a
@@ -31,26 +31,27 @@ upstream sources (see `.build/build-binaries.sh`).
 The [root](./root) directory mirrors the installed filesystem layout: a
 file at `root/foo/bar` is installed as `/foo/bar`.
 
-The binaries built by this package are installed under `/usr/lib/mlab`
-under the assumption that an operator does not need to invoke them
-directly, consistently with the [FHS][fhs-usr-lib]'s convention that
-`/usr/lib` "may also include internal binaries that are not intended
-to be executed directly by users or shell scripts."
+| Path                          | Contents                                        |
+|-------------------------------|-------------------------------------------------|
+| `/etc/mlab/api-key.env`       | M-Lab API key (`0600 root:root`)                |
+| `/etc/mlab/locate/verify.pub` | Locate token verification key                   |
+| `/etc/mlab/mlab-node.env`     | node configuration (non-secret)                 |
+| `/run/mlab/sockets/`          | tcpinfo / ipservice unix sockets                |
+| `/usr/libexec/mlab/`          | binaries and scripts                            |
+| `/usr/share/mlab/html/`       | static content served by ndt-server             |
+| `/usr/share/mlab/static.env`  | package-owned constants                         |
+| `/var/lib/mlab/autocert/`     | Let's Encrypt certificate cache                 |
+| `/var/lib/mlab/node/`         | registration data + service-account credentials |
+| `/var/lib/mlab/resultsdir/`   | measurement results awaiting upload             |
+| `/var/lib/mlab/schemas/`      | generated JSON schemas + uuid.prefix            |
 
-[fhs-usr-lib]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html#usrlibLibrariesForProgrammingAndPa
+The binaries built by this package are installed under `/usr/libexec/mlab`
+because the operator does not need to run them directly and the only
+(typical) consumer is `systemd`. This usage is consistent with the stated
+purpose of `libexec` according to [FHS][fhs]. Debian supports FHS 3.0
+and hence `libexec` since version 4.1.5 of the Debian Policy.
 
-| Path                          | Contents                                                  |
-|-------------------------------|-----------------------------------------------------------|
-| `/usr/lib/mlab/`              | binaries, scripts, package-owned constants (`static.env`) |
-| `/etc/mlab/mlab-node.env`     | configuration (non-secret)                                |
-| `/etc/mlab/api-key.env`       | M-Lab API key (`0600 root:root`)                          |
-| `/etc/mlab/locate/verify.pub` | Locate token verification key                             |
-| `/var/lib/mlab/node/`         | registration data + service-account credentials           |
-| `/var/lib/mlab/schemas/`      | generated JSON schemas + uuid.prefix                      |
-| `/var/lib/mlab/resultsdir/`   | measurement results awaiting upload                       |
-| `/var/lib/mlab/autocert/`     | Let's Encrypt certificate cache                           |
-| `/run/mlab/sockets/`          | tcpinfo / ipservice unix sockets                          |
-| `/usr/share/mlab/html/`       | static content served by ndt-server                       |
+[fhs]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html
 
 ## Building the package
 

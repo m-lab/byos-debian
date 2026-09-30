@@ -12,13 +12,13 @@ BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec
-EnvironmentFile=/usr/lib/mlab/static.env
+EnvironmentFile=/usr/share/mlab/static.env
 EnvironmentFile=/etc/mlab/mlab-node.env
 Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab/node/service-account-autojoin.json
 # Wait for ndt-server's events socket, and clear any stale annotator socket.
-ExecStartPre=/usr/lib/mlab/wait-socket /run/mlab/sockets/events.sock
+ExecStartPre=/usr/libexec/mlab/wait-socket /run/mlab/sockets/events.sock
 ExecStartPre=/bin/rm -f /run/mlab/sockets/uuid-annotator.sock
-ExecStart=/usr/lib/mlab/uuid-annotator \
+ExecStart=/usr/libexec/mlab/uuid-annotator \
   -prometheusx.listen-address=:9992 \
   -datadir=/var/lib/mlab/resultsdir/ndt/annotation2 \
   -tcpinfo.eventsocket=/run/mlab/sockets/events.sock \

@@ -57,7 +57,7 @@ gcloud --project "${PROJECT}" compute ssh --zone "${VM_ZONE}" \
     IPV6=\$(curl -s -6 v6.ipinfo.io/ip || true)
 
     # Write the node configuration. PROJECT/LOCATE_URL/AUTH_URL override the
-    # package defaults in /usr/lib/mlab/static.env, which point at production.
+    # package defaults in /usr/share/mlab/static.env, which point at production.
     # NOTE: -upload-schema stays false (the package default): schema uploads
     # are manual and intentional, never part of an automated deployment.
     sudo tee /etc/mlab/mlab-node.env >/dev/null <<EOC

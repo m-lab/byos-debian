@@ -8,7 +8,7 @@ PartOf=mlab-node.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/lib/mlab/generate-schemas-ndt7 -ndt7=/var/lib/mlab/schemas/ndt7.json
+ExecStart=/usr/libexec/mlab/generate-schemas-ndt7 -ndt7=/var/lib/mlab/schemas/ndt7.json
 
 # --- hardening ---
 User=mlab-node

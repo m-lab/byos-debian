@@ -3,17 +3,17 @@
 # generated build output — not tracked, not part of root/ — is listed here.
 
 # Component binaries (built from the pinned sources by .build/build-binaries.sh).
-binaries/ndt-server                     usr/lib/mlab
-binaries/heartbeat                      usr/lib/mlab
-binaries/uuid-annotator                 usr/lib/mlab
-binaries/jostler                        usr/lib/mlab
-binaries/traceroute-caller              usr/lib/mlab
-binaries/scamper                        usr/lib/mlab
-binaries/autojoin-register              usr/lib/mlab
-binaries/node-exporter                  usr/lib/mlab
-binaries/generate-schemas-ndt7          usr/lib/mlab
-binaries/generate-schemas-annotation2   usr/lib/mlab
-binaries/generate-schemas-traceroute    usr/lib/mlab
+binaries/ndt-server                     usr/libexec/mlab
+binaries/heartbeat                      usr/libexec/mlab
+binaries/uuid-annotator                 usr/libexec/mlab
+binaries/jostler                        usr/libexec/mlab
+binaries/traceroute-caller              usr/libexec/mlab
+binaries/scamper                        usr/libexec/mlab
+binaries/autojoin-register              usr/libexec/mlab
+binaries/node-exporter                  usr/libexec/mlab
+binaries/generate-schemas-ndt7          usr/libexec/mlab
+binaries/generate-schemas-annotation2   usr/libexec/mlab
+binaries/generate-schemas-traceroute    usr/libexec/mlab
 
 # IPInfo AS-names CSV (from the uuid-annotator repo), read by the
 # uuid-annotator via -asname.url.
