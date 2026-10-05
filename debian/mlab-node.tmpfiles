@@ -1,18 +1,18 @@
-# Persistent state under /var/lib/mlab and runtime dirs under /run/mlab.
+# Persistent state under /var/lib/mlab-node and runtime dirs under /run/mlab-node.
 # setgid (2xxx) so files and sockets created here inherit the mlab-node group.
 
 # Persistent state.
-d /var/lib/mlab                 0755 mlab-node mlab-node -
-d /var/lib/mlab/node            2750 mlab-node mlab-node -
-d /var/lib/mlab/schemas         2755 mlab-node mlab-node -
-d /var/lib/mlab/resultsdir      2755 mlab-node mlab-node -
-d /var/lib/mlab/resultsdir/ndt  2755 mlab-node mlab-node -
-d /var/lib/mlab/autocert        2750 mlab-node mlab-node -
+d /var/lib/mlab-node                 0755 mlab-node mlab-node -
+d /var/lib/mlab-node/node            2750 mlab-node mlab-node -
+d /var/lib/mlab-node/schemas         2755 mlab-node mlab-node -
+d /var/lib/mlab-node/resultsdir      2755 mlab-node mlab-node -
+d /var/lib/mlab-node/resultsdir/ndt  2755 mlab-node mlab-node -
+d /var/lib/mlab-node/autocert        2750 mlab-node mlab-node -
 
 # Runtime (tmpfs, recreated each boot).
-d /run/mlab                     0755 mlab-node mlab-node -
-d /run/mlab/sockets             2770 mlab-node mlab-node -
-d /run/mlab/metadata            2755 mlab-node mlab-node -
+d /run/mlab-node                     0755 mlab-node mlab-node -
+d /run/mlab-node/sockets             2770 mlab-node mlab-node -
+d /run/mlab-node/metadata            2755 mlab-node mlab-node -
 
 # We want the API key file to be 0600 root:root. However, the
 # package ships it as 0644 root:root. The line below exists so
@@ -34,4 +34,4 @@ d /run/mlab/metadata            2755 mlab-node mlab-node -
 # mounting and privilege dropping happen inside the spawned child. The
 # source code of systemd v259 confirms our interpretation: see `exec_spawn`
 # in `src/core/execute.c`: it loads the env first.
-z /etc/mlab/api-key.env         0600 root root -
+z /etc/mlab-node/api-key.env         0600 root root -

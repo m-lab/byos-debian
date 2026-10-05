@@ -7,12 +7,12 @@ PartOf=mlab-node.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/libexec/mlab/generate-schemas-annotation2 -ann2=/var/lib/mlab/schemas/annotation2.json
+ExecStart=/usr/libexec/mlab-node/generate-schemas-annotation2 -ann2=/var/lib/mlab-node/schemas/annotation2.json
 
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
-ReadWritePaths=/var/lib/mlab/schemas
+ReadWritePaths=/var/lib/mlab-node/schemas
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

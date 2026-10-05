@@ -5,5 +5,5 @@ set -eu
 
 : "${IPV4:=}"
 : "${IPV6:=}"
-printf '%s' "${IPV4}" > /run/mlab/metadata/external-ip
-printf '%s' "${IPV6}" > /run/mlab/metadata/external-ipv6
+printf '%s' "${IPV4}" > /run/mlab-node/metadata/external-ip
+printf '%s' "${IPV6}" > /run/mlab-node/metadata/external-ipv6

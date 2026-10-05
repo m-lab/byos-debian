@@ -57,10 +57,10 @@ gcloud --project "${PROJECT}" compute ssh --zone "${VM_ZONE}" \
     IPV6=\$(curl -s -6 v6.ipinfo.io/ip || true)
 
     # Write the node configuration. PROJECT/LOCATE_URL/AUTH_URL override the
-    # package defaults in /usr/share/mlab/static.env, which point at production.
+    # package defaults in /usr/share/mlab-node/static.env, which point at production.
     # NOTE: -upload-schema stays false (the package default): schema uploads
     # are manual and intentional, never part of an automated deployment.
-    sudo tee /etc/mlab/mlab-node.env >/dev/null <<EOC
+    sudo tee /etc/mlab-node/node.env >/dev/null <<EOC
 ORGANIZATION=${ORG}
 IATA=${IATA}
 PROBABILITY=${PROBABILITY}
@@ -75,11 +75,11 @@ LOCATE_URL=${LOCATE_URL}
 AUTH_URL=${AUTH_URL}
 EOC
 
-    sudo tee /etc/mlab/api-key.env >/dev/null <<EOC
+    sudo tee /etc/mlab-node/api-key.env >/dev/null <<EOC
 API_KEY=${API_KEY}
 EOC
-    sudo chown root:mlab-node /etc/mlab/api-key.env
-    sudo chmod 0640 /etc/mlab/api-key.env
+    sudo chown root:mlab-node /etc/mlab-node/api-key.env
+    sudo chmod 0640 /etc/mlab-node/api-key.env
 
     # Every service is PartOf= the target, so this cycles the whole stack.
     sudo systemctl daemon-reload

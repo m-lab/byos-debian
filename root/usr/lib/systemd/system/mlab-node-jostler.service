@@ -10,24 +10,24 @@ BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec
-EnvironmentFile=/usr/share/mlab/static.env
-EnvironmentFile=/etc/mlab/mlab-node.env
-Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab/node/service-account-autojoin.json
-ExecStart=/usr/libexec/mlab/jostler \
-  -mlab-node-name=@/var/lib/mlab/node/hostname \
+EnvironmentFile=/usr/share/mlab-node/static.env
+EnvironmentFile=/etc/mlab-node/node.env
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab-node/node/service-account-autojoin.json
+ExecStart=/usr/libexec/mlab-node/jostler \
+  -mlab-node-name=@/var/lib/mlab-node/node/hostname \
   -gcs-bucket=archive-${PROJECT} \
   -gcs-data-dir=autoload/v2 \
-  -local-data-dir=/var/lib/mlab/resultsdir \
+  -local-data-dir=/var/lib/mlab-node/resultsdir \
   -organization=${ORGANIZATION} \
   -experiment=ndt \
   -datatype=ndt7 \
-  -datatype-schema-file=ndt7:/var/lib/mlab/schemas/ndt7.json \
+  -datatype-schema-file=ndt7:/var/lib/mlab-node/schemas/ndt7.json \
   -datatype=annotation2 \
-  -datatype-schema-file=annotation2:/var/lib/mlab/schemas/annotation2.json \
+  -datatype-schema-file=annotation2:/var/lib/mlab-node/schemas/annotation2.json \
   -datatype=scamper2 \
-  -datatype-schema-file=scamper2:/var/lib/mlab/schemas/scamper2.json \
+  -datatype-schema-file=scamper2:/var/lib/mlab-node/schemas/scamper2.json \
   -datatype=hopannotation2 \
-  -datatype-schema-file=hopannotation2:/var/lib/mlab/schemas/hopannotation2.json \
+  -datatype-schema-file=hopannotation2:/var/lib/mlab-node/schemas/hopannotation2.json \
   -bundle-size-max=20971520 \
   -bundle-age-max=1h \
   -missed-age=2h \
@@ -42,7 +42,7 @@ RestartSec=5
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
-ReadWritePaths=/var/lib/mlab/resultsdir
+ReadWritePaths=/var/lib/mlab-node/resultsdir
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

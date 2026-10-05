@@ -11,7 +11,7 @@ set -e
 # component is PartOf=mlab-node.target and pulled in by it, so restarting the
 # target cycles the whole stack. On first install ($2 is empty) do nothing:
 # the target is enabled but must not start before the operator configures
-# /etc/mlab/*.env.
+# /etc/mlab-node/*.env.
 if [ "$1" = "configure" ] && [ -n "$2" ] && [ -d /run/systemd/system ]; then
     systemctl --system daemon-reload >/dev/null || true
     # --no-block: queue the restart and return, instead of holding dpkg for

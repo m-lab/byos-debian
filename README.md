@@ -31,21 +31,21 @@ upstream sources (see `.build/build-binaries.sh`).
 The [root](./root) directory mirrors the installed filesystem layout: a
 file at `root/foo/bar` is installed as `/foo/bar`.
 
-| Path                          | Contents                                        |
-|-------------------------------|-------------------------------------------------|
-| `/etc/mlab/api-key.env`       | M-Lab API key (`0600 root:root`)                |
-| `/etc/mlab/locate/verify.pub` | Locate token verification key                   |
-| `/etc/mlab/mlab-node.env`     | node configuration (non-secret)                 |
-| `/run/mlab/sockets/`          | tcpinfo / ipservice unix sockets                |
-| `/usr/libexec/mlab/`          | binaries and scripts                            |
-| `/usr/share/mlab/html/`       | static content served by ndt-server             |
-| `/usr/share/mlab/static.env`  | package-owned constants                         |
-| `/var/lib/mlab/autocert/`     | Let's Encrypt certificate cache                 |
-| `/var/lib/mlab/node/`         | registration data + service-account credentials |
-| `/var/lib/mlab/resultsdir/`   | measurement results awaiting upload             |
-| `/var/lib/mlab/schemas/`      | generated JSON schemas + uuid.prefix            |
+| Path                               | Contents                                        |
+|------------------------------------|-------------------------------------------------|
+| `/etc/mlab-node/api-key.env`       | M-Lab API key (`0600 root:root`)                |
+| `/etc/mlab-node/locate/verify.pub` | Locate token verification key                   |
+| `/etc/mlab-node/node.env`          | node configuration (non-secret)                 |
+| `/run/mlab-node/sockets/`          | tcpinfo / ipservice unix sockets                |
+| `/usr/libexec/mlab-node/`          | binaries and scripts                            |
+| `/usr/share/mlab-node/html/`       | static content served by ndt-server             |
+| `/usr/share/mlab-node/static.env`  | package-owned constants                         |
+| `/var/lib/mlab-node/autocert/`     | Let's Encrypt certificate cache                 |
+| `/var/lib/mlab-node/node/`         | registration data + service-account credentials |
+| `/var/lib/mlab-node/resultsdir/`   | measurement results awaiting upload             |
+| `/var/lib/mlab-node/schemas/`      | generated JSON schemas + uuid.prefix            |
 
-The binaries built by this package are installed under `/usr/libexec/mlab`
+The binaries built by this package are installed under `/usr/libexec/mlab-node`
 because the operator does not need to run them directly and the only
 (typical) consumer is `systemd`. This usage is consistent with the stated
 purpose of `libexec` according to [FHS][fhs]. Debian supports FHS 3.0
@@ -92,16 +92,16 @@ force a full rebuild.
 sudo apt install ./mlab-node_1.0.0_amd64.deb
 
 # Configure the node, then add the API key.
-sudoedit /etc/mlab/mlab-node.env
-sudoedit /etc/mlab/api-key.env
+sudoedit /etc/mlab-node/node.env
+sudoedit /etc/mlab-node/api-key.env
 
 # Start the whole stack (it is also enabled to start on boot).
 sudo systemctl start mlab-node.target
 ```
 
-Required settings in `/etc/mlab/mlab-node.env`: `ORGANIZATION`, `IATA`,
+Required settings in `/etc/mlab-node/node.env`: `ORGANIZATION`, `IATA`,
 `INTERFACE_NAME`, `INTERFACE_MAXRATE`, `UPLINK`, `IPV4`, `TYPE` (and `IPV6` if
-the node is reachable over IPv6). `API_KEY` goes in `/etc/mlab/api-key.env`.
+the node is reachable over IPv6). `API_KEY` goes in `/etc/mlab-node/api-key.env`.
 
 ## Operating
 
@@ -135,6 +135,6 @@ Once the stable repository is made public, the same line without the `ar+` trans
 
 ## Test deployment (M-Lab internal)
 
-M-Lab runs this package on an `autonode-deb` VM in `mlab-sandbox` and in `mlab-staging` (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. Each VM tracks its own project's `mlab-node` repository: the startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so on staging every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade. The timer only upgrades an installed package, so a VM needs a one-time install and `/etc/mlab/*.env` configuration first.
+M-Lab runs this package on an `autonode-deb` VM in `mlab-sandbox` and in `mlab-staging` (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. Each VM tracks its own project's `mlab-node` repository: the startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so on staging every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade. The timer only upgrades an installed package, so a VM needs a one-time install and `/etc/mlab-node/*.env` configuration first.
 
-Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it, writes `/etc/mlab/mlab-node.env` and `/etc/mlab/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.
+Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it, writes `/etc/mlab-node/node.env` and `/etc/mlab-node/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.

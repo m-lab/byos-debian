@@ -13,15 +13,15 @@ StartLimitBurst=5
 
 [Service]
 Type=exec
-EnvironmentFile=/usr/share/mlab/static.env
-EnvironmentFile=/etc/mlab/mlab-node.env
-EnvironmentFile=/etc/mlab/api-key.env
-ExecStart=/usr/libexec/mlab/autojoin-register \
+EnvironmentFile=/usr/share/mlab-node/static.env
+EnvironmentFile=/etc/mlab-node/node.env
+EnvironmentFile=/etc/mlab-node/api-key.env
+ExecStart=/usr/libexec/mlab-node/autojoin-register \
   -endpoint=https://autojoin-dot-${PROJECT}.appspot.com/autojoin/v0/node/register \
   -key=${API_KEY} \
   -service=ndt \
   -iata=${IATA} \
-  -output=/var/lib/mlab/node \
+  -output=/var/lib/mlab-node/node \
   -healthcheck-addr=:8001 \
   -ports=9990,9991,9992,9993,9994,9995 \
   -probability=${PROBABILITY} \
@@ -35,7 +35,7 @@ RestartSec=10
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
-ReadWritePaths=/var/lib/mlab/node
+ReadWritePaths=/var/lib/mlab-node/node
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
