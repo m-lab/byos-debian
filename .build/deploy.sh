@@ -78,8 +78,8 @@ EOC
     sudo tee /etc/mlab-node/api-key.env >/dev/null <<EOC
 API_KEY=${API_KEY}
 EOC
-    sudo chown root:mlab-node /etc/mlab-node/api-key.env
-    sudo chmod 0640 /etc/mlab-node/api-key.env
+    sudo chown root:root /etc/mlab-node/api-key.env
+    sudo chmod 0600 /etc/mlab-node/api-key.env
 
     # Every service is PartOf= the target, so this cycles the whole stack.
     sudo systemctl daemon-reload
