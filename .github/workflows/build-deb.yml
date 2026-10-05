@@ -147,11 +147,14 @@ jobs:
       - name: Collect artifacts
         run: mkdir -p dist && mv ../mlab-node_* dist/
 
+      # Artifacts only hand files between jobs of the same run; 1 day keeps
+      # "re-run failed jobs" working.
       - uses: actions/upload-artifact@v7
         with:
           name: mlab-node-deb-${{ matrix.arch }}
           path: dist/
           if-no-files-found: error
+          retention-days: 1
 
   release:
     # Same guard as publish-stable: only v* tag pushes create a release.
