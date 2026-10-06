@@ -23,8 +23,9 @@ BBR, and external-IP metadata. The whole stack is started and stopped as a
 unit through `mlab-node.target`; if `register-node` goes down, the entire
 stack is brought down with it.
 
-The component binaries are built at package build time from the pinned
-upstream sources (see `.build/build-binaries.sh`).
+The component binaries are the official release binaries of each component,
+pinned with their checksums in [`.build/components.env`](.build/components.env)
+and staged at package build time by `.build/stage-binaries.sh`.
 
 ## File layout
 
@@ -59,36 +60,43 @@ and hence `libexec` since version 4.1.5 of the Debian Policy.
 
 CI is the canonical way to build the package: every push runs the
 [`build-deb` workflow](.github/workflows/build-deb.yml), which builds it for
-amd64 and arm64 (natively, on `ubuntu-24.04-arm` runners for the latter) in a
-`debian:bookworm` container and uploads the resulting .debs as workflow
-artifacts. Building on bookworm sets the package's `libc6` floor to bookworm's
-glibc, so the .deb installs on Debian 12 and anything newer. Pushing a `v*`
-tag creates a GitHub Release with the .debs attached; production machines
-should install from Releases.
+amd64 in a `debian:bookworm` container and uploads the resulting .deb as a
+workflow artifact. Building on bookworm sets the package's `libc6` floor to
+bookworm's glibc, so the .deb installs on Debian 12 and anything newer.
+Pushing a `v*` tag creates a GitHub Release with the .deb attached;
+production machines should install from Releases.
 
 Local builds work too and use the same script. You'll need
 `dpkg-buildpackage`, debhelper 13.14 or newer (older versions ignore
-units under `/usr/lib/systemd/system`; on bookworm take it from backports), a
-recent Go, `git`, `file`, and a C toolchain
-(for scamper and the cgo builds), plus network access to clone the pinned
-sources and fetch Go modules:
+units under `/usr/lib/systemd/system`; on bookworm take it from backports),
+`curl`, `file`, and a C toolchain (for scamper), plus network access to
+download the pinned releases:
 
 ```sh
 dpkg-buildpackage -us -uc -b
 ```
 
-(Add `-d` if Go is installed from upstream tarballs rather than the
-`golang-go` package.) A locally built .deb inherits the host's glibc as its
-`libc6` dependency floor, so a package built on a newer distro may not
-install on bookworm; use the CI artifacts for anything that leaves your
-machine.
+A locally built .deb inherits the host's glibc as its `libc6` dependency
+floor (through scamper, the only dynamically linked binary), so a package
+built on a newer distro may not install on bookworm; use the CI artifacts for
+anything that leaves your machine.
 
-The build clones each component's repository at its pinned release tag,
-builds the binaries with the upstream builds' flags plus `-s -w` stripping,
-and stages them under `binaries/`. Each component is cached with a
-recipe-keyed stamp under `binaries/.stamps/`, so rebuilds only recompile
-components whose version pin or build flags changed; delete `binaries/` to
-force a full rebuild.
+The build downloads the M-Lab components' official release binaries and the
+upstream node_exporter release, verifies each against the sha256 pinned in
+`.build/components.env`, and stages them under `binaries/`. scamper is built
+from the source tarball traceroute-caller vendors. Downloads are cached under
+`binaries/.downloads/` and the scamper build under `binaries/.stamps/`; delete
+`binaries/` to start over.
+
+To update a component, change its tag in `.build/components.env` and copy the
+new sha256 from the `checksums.txt` attached to that release. To test an
+unreleased build of a component locally, put the binary in a directory under
+its staged name and point `MLAB_NODE_LOCAL_BINARIES` at it; those files are
+staged without checksum verification:
+
+```sh
+MLAB_NODE_LOCAL_BINARIES=$HOME/mlab-bin dpkg-buildpackage -us -uc -b
+```
 
 ## Installing and configuring
 
@@ -214,4 +222,4 @@ Once the stable repository is made public, the same line without the `ar+` trans
 
 M-Lab runs this package on an `autonode-deb` VM in `mlab-sandbox` and in `mlab-staging` (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. Each VM tracks its own project's `mlab-node` repository: the startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so on staging every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade. The timer only upgrades an installed package, so a VM needs a one-time install and `/etc/mlab-node/*.env` configuration first.
 
-Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it noninteractively (debconf takes its defaults and guesses), writes `/etc/mlab-node/node.env` and `/etc/mlab-node/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.
+Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `debian:bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it noninteractively (debconf takes its defaults and guesses), writes `/etc/mlab-node/node.env` and `/etc/mlab-node/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.

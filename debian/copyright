@@ -9,8 +9,9 @@ License: Apache-2.0
 Files: binaries/*
 Copyright: 2025-2026 Measurement Lab and the Prometheus Authors
 Comment:
- These binaries are built at package build time from the pinned upstream
- sources by .build/build-binaries.sh. They are not part of the source in this
+ These binaries are staged at package build time by .build/stage-binaries.sh
+ from the official releases pinned in .build/components.env (scamper is built
+ from its source tarball). They are not part of the source in this
  repository. Each component is licensed under its own upstream license; see
  the respective M-Lab, Prometheus and scamper projects (scamper, vendored in
  m-lab/traceroute-caller, is GPL-2 licensed).

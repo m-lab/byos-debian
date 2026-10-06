@@ -4,11 +4,10 @@
 #   _API_KEY      Autojoin API key the node registers with.
 #   _PROBABILITY  Probability (0-1) that the node is selected by Locate.
 steps:
-# Build the package. Go comes from the golang image (bookworm's golang-go is
-# too old for the pinned components), so -d skips dpkg's build-dep check,
-# mirroring .github/workflows/build-deb.yml. Building on bookworm keeps the
-# package's libc6 floor at 2.36, which installs on the VM's Ubuntu 24.04.
-- name: golang:1-bookworm
+# Build the package, mirroring .github/workflows/build-deb.yml. Building on
+# bookworm keeps the package's libc6 floor at 2.36, which installs on the
+# VM's Ubuntu 24.04.
+- name: debian:bookworm
   id: build-deb
   entrypoint: bash
   env:
@@ -23,7 +22,8 @@ steps:
     echo "deb http://deb.debian.org/debian bookworm-backports main" \
       > /etc/apt/sources.list.d/backports.list
     apt-get update
-    apt-get install -y --no-install-recommends build-essential devscripts file
+    apt-get install -y --no-install-recommends \
+      build-essential devscripts file ca-certificates curl
     apt-get install -y --no-install-recommends -t bookworm-backports debhelper
     # Stamp a unique version so every deploy is a real package transition.
     # "~wip" sorts above the CI's "~dev" snapshots (dpkg compares the letters)
@@ -32,7 +32,7 @@ steps:
     # release still supersedes it.
     dch -b --newversion "$(dpkg-parsechangelog -SVersion)~wip.$${BUILD_ID:0:8}" \
       --distribution UNRELEASED "Cloud Build snapshot."
-    dpkg-buildpackage -us -uc -b -d
+    dpkg-buildpackage -us -uc -b
     # dpkg-buildpackage writes to the parent of the source tree, which is not
     # persisted between steps; move the .deb into the shared workspace.
     mkdir -p dist && mv ../mlab-node_*.deb dist/
@@ -46,5 +46,4 @@ steps:
     '/workspace/.build/deploy.sh $PROJECT_ID ${_API_KEY} ${_PROBABILITY}'
   ]
 
-# Building every pinned Go component from source takes a while.
 timeout: 3600s
