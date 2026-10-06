@@ -147,8 +147,12 @@ EOF
 sudo env DEBIAN_FRONTEND=noninteractive apt install ./mlab-node_1.1.0_amd64.deb
 ```
 
-The question names are listed in `debian/mlab-node.templates`. On upgrades
-nothing is asked: the existing configuration is kept as is.
+The question names are listed in `debian/mlab-node.templates`. Preseeded
+answers only apply to the first install: once `/etc/mlab-node/node.env`
+exists, what it assigns wins, even an empty value, so an operator edit is
+never overwritten by an older debconf answer. On upgrades nothing is asked:
+the existing configuration is kept as is. To change settings on an
+installed node, edit the file or run `dpkg-reconfigure mlab-node`.
 
 There is no organization setting: the organization is a property of the API
 key on the Autojoin side, and the node learns it from the hostname it is
