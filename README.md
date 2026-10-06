@@ -105,7 +105,7 @@ guesses.
 
 | Setting | Asked as | Pre-filled with |
 |---|---|---|
-| `API_KEY` | API key, echoed as typed | (no guess; cleared from debconf once written) |
+| `API_KEY` | API key, not echoed | (no guess; cleared from debconf once written) |
 | `IATA` | nearest large international airport | (no guess: a nearest-airport lookup proposes airfields; the dialog links a list of international airports) |
 | `PROBABILITY` | load-balancer probability | `0.1` |
 | `INTERFACE_NAME` | measurement interface | the default route's interface |
@@ -138,7 +138,7 @@ preseeded answer take the default or the guess:
 
 ```sh
 sudo debconf-set-selections <<EOF
-mlab-node mlab-node/api-key string <api key>
+mlab-node mlab-node/api-key password <api key>
 mlab-node mlab-node/iata string lhr
 mlab-node mlab-node/uplink string 10g
 mlab-node mlab-node/type select physical

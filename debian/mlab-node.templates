@@ -1,10 +1,9 @@
 Template: mlab-node/api-key
-Type: string
+Type: password
 Description: M-Lab API key:
- The API key provided by M-Lab for your organization. It is shown as you
- type it (it is long and random, so echoing it helps) and is written to
- /etc/mlab-node/api-key.env, readable by root only. It is not kept in the debconf
- database.
+ The API key provided by M-Lab for your organization. Nothing is echoed as
+ you type it (pasting works). It is written to /etc/mlab-node/api-key.env,
+ readable by root only, and is not kept in the debconf database.
  .
  Leave it empty to keep the value already in /etc/mlab-node/api-key.env.
 
