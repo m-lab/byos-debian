@@ -8,10 +8,10 @@
 # hostname file exists.
 set -eu
 
-hostname=$(cat /var/lib/mlab/node/hostname)
+hostname=$(cat /var/lib/mlab-node/node/hostname)
 org=$(printf '%s' "${hostname}" | cut -s -d. -f2)
 if [ -z "${org}" ]; then
   echo "mlab-node: cannot derive the organization from hostname '${hostname}'" >&2
   exit 1
 fi
-printf 'ORGANIZATION=%s\n' "${org}" > /run/mlab/metadata/registration.env
+printf 'ORGANIZATION=%s\n' "${org}" > /run/mlab-node/metadata/registration.env

@@ -7,12 +7,12 @@ PartOf=mlab-node.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/lib/mlab/gen-uuid-prefix
+ExecStart=/usr/libexec/mlab-node/gen-uuid-prefix
 
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
-ReadWritePaths=/var/lib/mlab/schemas
+ReadWritePaths=/var/lib/mlab-node/schemas
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

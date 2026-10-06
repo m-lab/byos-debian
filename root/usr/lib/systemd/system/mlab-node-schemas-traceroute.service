@@ -7,14 +7,14 @@ PartOf=mlab-node.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/lib/mlab/generate-schemas-traceroute \
-  -scamper2=/var/lib/mlab/schemas/scamper2.json \
-  -hopannotation2=/var/lib/mlab/schemas/hopannotation2.json
+ExecStart=/usr/libexec/mlab-node/generate-schemas-traceroute \
+  -scamper2=/var/lib/mlab-node/schemas/scamper2.json \
+  -hopannotation2=/var/lib/mlab-node/schemas/hopannotation2.json
 
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
-ReadWritePaths=/var/lib/mlab/schemas
+ReadWritePaths=/var/lib/mlab-node/schemas
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

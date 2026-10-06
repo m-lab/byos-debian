@@ -8,9 +8,9 @@ set -e
 # extra settings (e.g. a PROJECT override) survive.
 . /usr/share/debconf/confmodule
 
-TEMPLATE_DIR=/usr/share/mlab/templates
-ENV_FILE=/etc/mlab/mlab-node.env
-KEY_FILE=/etc/mlab/api-key.env
+TEMPLATE_DIR=/usr/share/mlab-node/templates
+ENV_FILE=/etc/mlab-node/node.env
+KEY_FILE=/etc/mlab-node/api-key.env
 APT_CONF=/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades
 
 # set_env KEY VALUE FILE: set KEY=VALUE in FILE in place, replacing the
@@ -35,7 +35,7 @@ env_value() {
 }
 
 if [ "$1" = "configure" ]; then
-    [ -e "$ENV_FILE" ] || install -m 0644 -o root -g root "$TEMPLATE_DIR/mlab-node.env" "$ENV_FILE"
+    [ -e "$ENV_FILE" ] || install -m 0644 -o root -g root "$TEMPLATE_DIR/node.env" "$ENV_FILE"
     [ -e "$KEY_FILE" ] || install -m 0600 -o root -g root "$TEMPLATE_DIR/api-key.env" "$KEY_FILE"
 
     for pair in iata:IATA probability:PROBABILITY \
@@ -103,8 +103,8 @@ if [ "$1" = "configure" ]; then
     if [ -n "$missing" ]; then
         cat >&2 <<MSG
 mlab-node: not started, the configuration is incomplete (unset:${missing# }).
-mlab-node: run "dpkg-reconfigure mlab-node", or edit /etc/mlab/mlab-node.env
-mlab-node: and /etc/mlab/api-key.env, then "systemctl start mlab-node.target".
+mlab-node: run "dpkg-reconfigure mlab-node", or edit /etc/mlab-node/node.env
+mlab-node: and /etc/mlab-node/api-key.env, then "systemctl start mlab-node.target".
 MSG
     elif [ -d /run/systemd/system ]; then
         # The configuration is complete: (re)start the stack so it runs with

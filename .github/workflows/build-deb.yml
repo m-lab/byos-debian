@@ -142,7 +142,7 @@ jobs:
       # (debconf, sysusers, tmpfiles, enable) without an init system.
       # Installing on bookworm itself proves the computed libc6 floor is
       # satisfiable on the oldest supported target. Preseeding two answers
-      # checks the debconf -> /etc/mlab path; the rest take the defaults
+      # checks the debconf -> /etc/mlab-node path; the rest take the defaults
       # (unattended upgrades on) or the config script's guesses.
       - name: Install smoke test
         run: |
@@ -151,21 +151,24 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y ../mlab-node_*.deb
           dpkg -V mlab-node
           echo "Depends: $(dpkg-deb -f ../mlab-node_*.deb Depends)"
-          grep -qx 'IATA=oma' /etc/mlab/mlab-node.env
-          grep -qx 'UPLINK=10g' /etc/mlab/mlab-node.env
-          grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab/mlab-node.env
-          test "$(stat -c %a /etc/mlab/api-key.env)" = 600
+          grep -qx 'IATA=oma' /etc/mlab-node/node.env
+          grep -qx 'UPLINK=10g' /etc/mlab-node/node.env
+          grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab-node/node.env
+          test "$(stat -c %a /etc/mlab-node/api-key.env)" = 600
           apt-config dump | grep -q 'Unattended-Upgrade::Origins-Pattern:: "origin=mlab-node,label=mlab-node";'
-          sed -n '/^[A-Z]/p' /etc/mlab/mlab-node.env
+          sed -n '/^[A-Z]/p' /etc/mlab-node/node.env
 
       - name: Collect artifacts
         run: mkdir -p dist && mv ../mlab-node_* dist/
 
+      # Artifacts only hand files between jobs of the same run; 1 day keeps
+      # "re-run failed jobs" working.
       - uses: actions/upload-artifact@v7
         with:
           name: mlab-node-deb-${{ matrix.arch }}
           path: dist/
           if-no-files-found: error
+          retention-days: 1
 
   release:
     # Same guard as publish-stable: only v* tag pushes create a release.

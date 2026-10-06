@@ -8,15 +8,15 @@ systemd service, confined with systemd's own sandboxing directives.
 
 The `mlab-node` package installs and runs the following systemd services:
 
-| Service | Unit |
-|---|---|
-| Node registration (Autojoin API) | `mlab-node-register.service` |
-| NDT7 measurement server | `mlab-node-ndt-server.service` |
-| Heartbeat (Locate API) | `mlab-node-heartbeat.service` |
-| UUID annotator | `mlab-node-uuid-annotator.service` |
-| Jostler (GCS archival) | `mlab-node-jostler.service` |
-| Traceroute caller (scamper) | `mlab-node-traceroute-caller.service` |
-| Prometheus node exporter | `mlab-node-node-exporter.service` |
+| Service                          | Unit                                  |
+|----------------------------------|---------------------------------------|
+| Node registration (Autojoin API) | `mlab-node-register.service`          |
+| NDT7 measurement server          | `mlab-node-ndt-server.service`        |
+| Heartbeat (Locate API)           | `mlab-node-heartbeat.service`         |
+| UUID annotator                   | `mlab-node-uuid-annotator.service`    |
+| Jostler (GCS archival)           | `mlab-node-jostler.service`           |
+| Traceroute caller (scamper)      | `mlab-node-traceroute-caller.service` |
+| Prometheus node exporter         | `mlab-node-node-exporter.service`     |
 
 There are also a few one-shot units for schema generation, the UUID prefix,
 BBR, and external-IP metadata. The whole stack is started and stopped as a
@@ -31,28 +31,29 @@ upstream sources (see `.build/build-binaries.sh`).
 The [root](./root) directory mirrors the installed filesystem layout: a
 file at `root/foo/bar` is installed as `/foo/bar`.
 
-The binaries built by this package are installed under `/usr/lib/mlab`
-under the assumption that an operator does not need to invoke them
-directly, consistently with the [FHS][fhs-usr-lib]'s convention that
-`/usr/lib` "may also include internal binaries that are not intended
-to be executed directly by users or shell scripts."
-
-[fhs-usr-lib]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html#usrlibLibrariesForProgrammingAndPa
-
-| Path                          | Contents                                                  |
-|-------------------------------|-----------------------------------------------------------|
-| `/usr/lib/mlab/`              | binaries, scripts, package-owned constants (`static.env`) |
-| `/etc/mlab/mlab-node.env`     | configuration (non-secret), generated from the debconf answers |
-| `/etc/mlab/api-key.env`       | M-Lab API key (`0600 root:root`), generated likewise      |
-| `/etc/mlab/locate/verify.pub` | Locate token verification key                             |
-| `/usr/share/mlab/templates/`  | the initial versions of the two `/etc/mlab/*.env` files   |
+| Path                               | Contents                                        |
+|------------------------------------|-------------------------------------------------|
+| `/etc/mlab-node/api-key.env`       | M-Lab API key (`0600 root:root`)                |
+| `/etc/mlab-node/locate/verify.pub` | Locate token verification key                   |
+| `/etc/mlab-node/node.env`          | node configuration (non-secret), generated from the debconf answers |
+| `/run/mlab-node/sockets/`          | tcpinfo / ipservice unix sockets                |
+| `/usr/libexec/mlab-node/`          | binaries and scripts                            |
+| `/usr/share/mlab-node/html/`       | static content served by ndt-server             |
+| `/usr/share/mlab-node/static.env`  | package-owned constants                         |
+| `/var/lib/mlab-node/autocert/`     | Let's Encrypt certificate cache                 |
+| `/var/lib/mlab-node/node/`         | registration data + service-account credentials |
+| `/var/lib/mlab-node/resultsdir/`   | measurement results awaiting upload             |
+| `/var/lib/mlab-node/schemas/`      | generated JSON schemas + uuid.prefix            |
+| `/usr/share/mlab-node/templates/`  | initial versions of the two `/etc/mlab-node/*.env` files |
 | `/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades` | unattended-upgrades settings (if enabled) |
-| `/var/lib/mlab/node/`         | registration data + service-account credentials           |
-| `/var/lib/mlab/schemas/`      | generated JSON schemas + uuid.prefix                      |
-| `/var/lib/mlab/resultsdir/`   | measurement results awaiting upload                       |
-| `/var/lib/mlab/autocert/`     | Let's Encrypt certificate cache                           |
-| `/run/mlab/sockets/`          | tcpinfo / ipservice unix sockets                          |
-| `/usr/share/mlab/html/`       | static content served by ndt-server                       |
+
+The binaries built by this package are installed under `/usr/libexec/mlab-node`
+because the operator does not need to run them directly and the only
+(typical) consumer is `systemd`. This usage is consistent with the stated
+purpose of `libexec` according to [FHS][fhs]. Debian supports FHS 3.0
+and hence `libexec` since version 4.1.5 of the Debian Policy.
+
+[fhs]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html
 
 ## Building the package
 
@@ -98,7 +99,7 @@ sudo apt install ./mlab-node_1.1.0_amd64.deb
 The installer asks for the node's configuration through debconf (the usual
 terminal dialogs) and, once every required setting has a value, starts the
 whole stack (it is also enabled to start on boot). Every question is
-pre-filled: with the value already in `/etc/mlab/*.env` when there is one,
+pre-filled: with the value already in `/etc/mlab-node/*.env` when there is one,
 otherwise, on a fresh install, with a guess derived from the host. Check the
 guesses.
 
@@ -153,7 +154,7 @@ There is no organization setting: the organization is a property of the API
 key on the Autojoin side, and the node learns it from the hostname it is
 registered under (`<machine>.<org>.<project>.measurement-lab.org`).
 `mlab-node-register-ready.service` exports it as `ORGANIZATION` in
-`/run/mlab/metadata/registration.env` for jostler (GCS path) and ndt-server
+`/run/mlab-node/metadata/registration.env` for jostler (GCS path) and ndt-server
 (metrics label).
 
 ## Unattended upgrades
@@ -207,6 +208,6 @@ Once the stable repository is made public, the same line without the `ar+` trans
 
 ## Test deployment (M-Lab internal)
 
-M-Lab runs this package on an `autonode-deb` VM in `mlab-sandbox` and in `mlab-staging` (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. Each VM tracks its own project's `mlab-node` repository: the startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so on staging every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade. The timer only upgrades an installed package, so a VM needs a one-time install and `/etc/mlab/*.env` configuration first.
+M-Lab runs this package on an `autonode-deb` VM in `mlab-sandbox` and in `mlab-staging` (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. Each VM tracks its own project's `mlab-node` repository: the startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so on staging every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade. The timer only upgrades an installed package, so a VM needs a one-time install and `/etc/mlab-node/*.env` configuration first.
 
-Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it noninteractively (debconf takes its defaults and guesses), writes `/etc/mlab/mlab-node.env` and `/etc/mlab/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.
+Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it noninteractively (debconf takes its defaults and guesses), writes `/etc/mlab-node/node.env` and `/etc/mlab-node/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.

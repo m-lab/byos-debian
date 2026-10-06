@@ -8,10 +8,10 @@ set -e
 # runtime sockets). The debconf entries are purged by the debhelper snippet
 # below. The mlab-node system user stays, as sysusers.d users do.
 if [ "$1" = "purge" ]; then
-    rm -f /etc/mlab/mlab-node.env /etc/mlab/api-key.env
+    rm -f /etc/mlab-node/node.env /etc/mlab-node/api-key.env
     rm -f /etc/apt/apt.conf.d/52mlab-node-unattended-upgrades
-    rmdir /etc/mlab 2>/dev/null || true
-    rm -rf /var/lib/mlab /run/mlab
+    rmdir /etc/mlab-node 2>/dev/null || true
+    rm -rf /var/lib/mlab-node /run/mlab-node
 fi
 
 #DEBHELPER#

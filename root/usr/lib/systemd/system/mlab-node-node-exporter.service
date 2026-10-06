@@ -11,7 +11,7 @@ BindsTo=mlab-node-register.service
 Type=exec
 # Runs natively on the host, so the default rootfs (/) is correct and no
 # --path.rootfs indirection is needed.
-ExecStart=/usr/lib/mlab/node-exporter \
+ExecStart=/usr/libexec/mlab-node/node-exporter \
   --web.listen-address=:9995 \
   --collector.disable-defaults \
   --collector.cpu \
