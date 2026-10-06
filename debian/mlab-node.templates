@@ -1,0 +1,96 @@
+Template: mlab-node/api-key
+Type: password
+Description: M-Lab API key:
+ The API key provided by M-Lab for your organization. Nothing is echoed as
+ you type it (pasting works). It is written to /etc/mlab-node/api-key.env,
+ readable by root only, and is not kept in the debconf database.
+ .
+ Leave it empty to keep the value already in /etc/mlab-node/api-key.env.
+
+Template: mlab-node/iata
+Type: string
+Description: IATA code of the nearest large international airport:
+ The 3-letter IATA code of the nearest large international airport, in
+ upper or lower case (e.g. LHR or lhr). M-Lab names its metros after airports:
+ pick the largest international airport serving this machine's
+ metropolitan area, not the closest airfield.
+ .
+ A list of international airports by country, with their IATA codes:
+ https://en.wikipedia.org/wiki/List_of_international_airports_by_country
+
+Template: mlab-node/probability
+Type: string
+Default: 0.1
+Description: Probability of being selected by the load balancer (0-1):
+ The probability that M-Lab's Locate service selects this node for a
+ client in its metro. 1 means as likely as any other M-Lab node in the
+ metro; 0.1 (10%) is the recommended starting point. Increase it as you
+ gain confidence in how much traffic the node can handle.
+
+Template: mlab-node/interface-name
+Type: string
+Description: Network interface serving measurement traffic:
+ The network interface that measurement traffic leaves through. The rate
+ limit below applies to it.
+ .
+ The proposed value is the interface of this machine's default route.
+
+Template: mlab-node/uplink
+Type: string
+Description: Uplink speed (e.g. 1g, 10g, 25g):
+ The speed of the uplink this machine is connected to, as an integer
+ followed by "g" (gigabits per second). The minimum M-Lab requires is 1g;
+ 10g or faster is recommended.
+ .
+ The proposed value, when present, is the link speed the interface reports.
+
+Template: mlab-node/interface-maxrate
+Type: string
+Description: Transmit rate above which new tests are refused (bit/s):
+ When the interface's transmit rate exceeds this value, ndt-server refuses
+ new connections so that running tests are not affected by congestion on
+ the uplink. Recommended: 150000000 for a 1g uplink, 7000000000 for 10g.
+ .
+ The proposed value follows those recommendations for the uplink speed
+ given above.
+
+Template: mlab-node/ipv4
+Type: string
+Description: Public IPv4 address of this node:
+ The IPv4 address clients reach this node at. It is required.
+ .
+ The proposed value is the address this machine's outbound traffic appears
+ to come from.
+
+Template: mlab-node/ipv6
+Type: string
+Description: Public IPv6 address of this node (optional):
+ The IPv6 address clients reach this node at. Leave it empty if the node
+ is not reachable over IPv6.
+ .
+ The proposed value, when present, is the address this machine's outbound
+ IPv6 traffic appears to come from.
+
+Template: mlab-node/type
+Type: select
+Choices: physical, virtual
+Description: Machine type:
+ Whether this is a bare-metal machine dedicated to M-Lab (physical) or a
+ virtual machine (virtual).
+
+Template: mlab-node/unattended-upgrades
+Type: boolean
+Default: true
+Description: Install security updates and mlab-node upgrades automatically?
+ The unattended-upgrades package can install updates on its own, daily.
+ If you accept, this machine will automatically install the distribution's
+ security updates and new versions of the mlab-node package (when the
+ M-Lab APT repository is configured in the APT sources). The stack is
+ restarted gracefully after an mlab-node upgrade.
+ .
+ The settings are written to /etc/apt/apt.conf.d/52mlab-node-unattended-upgrades.
+
+Template: mlab-node/invalid-value
+Type: error
+Description: Invalid value
+ The value entered for ${setting} is not valid: ${reason}

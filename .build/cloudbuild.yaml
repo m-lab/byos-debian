@@ -19,9 +19,12 @@ steps:
   - -c
   - |
     set -euxo pipefail
+    # debhelper from bookworm-backports: see debian/rules.
+    echo "deb http://deb.debian.org/debian bookworm-backports main" \
+      > /etc/apt/sources.list.d/backports.list
     apt-get update
-    apt-get install -y --no-install-recommends \
-      build-essential debhelper devscripts file
+    apt-get install -y --no-install-recommends build-essential devscripts file
+    apt-get install -y --no-install-recommends -t bookworm-backports debhelper
     # Stamp a unique version so every deploy is a real package transition.
     # "~wip" sorts above the CI's "~dev" snapshots (dpkg compares the letters)
     # but below the plain release version, so the VM's periodic upgrade from
@@ -40,7 +43,7 @@ steps:
   id: deploy
   dir: '/workspace/'
   args: [
-    '/workspace/.build/deploy.sh $PROJECT_ID mlab ${_API_KEY} ${_PROBABILITY}'
+    '/workspace/.build/deploy.sh $PROJECT_ID ${_API_KEY} ${_PROBABILITY}'
   ]
 
 # Building every pinned Go component from source takes a while.

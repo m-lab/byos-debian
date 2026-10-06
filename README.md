@@ -35,7 +35,7 @@ file at `root/foo/bar` is installed as `/foo/bar`.
 |------------------------------------|-------------------------------------------------|
 | `/etc/mlab-node/api-key.env`       | M-Lab API key (`0600 root:root`)                |
 | `/etc/mlab-node/locate/verify.pub` | Locate token verification key                   |
-| `/etc/mlab-node/node.env`          | node configuration (non-secret)                 |
+| `/etc/mlab-node/node.env`          | node configuration (non-secret), generated from the debconf answers |
 | `/run/mlab-node/sockets/`          | tcpinfo / ipservice unix sockets                |
 | `/usr/libexec/mlab-node/`          | binaries and scripts                            |
 | `/usr/share/mlab-node/html/`       | static content served by ndt-server             |
@@ -44,6 +44,8 @@ file at `root/foo/bar` is installed as `/foo/bar`.
 | `/var/lib/mlab-node/node/`         | registration data + service-account credentials |
 | `/var/lib/mlab-node/resultsdir/`   | measurement results awaiting upload             |
 | `/var/lib/mlab-node/schemas/`      | generated JSON schemas + uuid.prefix            |
+| `/usr/share/mlab-node/templates/`  | initial versions of the two `/etc/mlab-node/*.env` files |
+| `/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades` | unattended-upgrades settings (if enabled) |
 
 The binaries built by this package are installed under `/usr/libexec/mlab-node`
 because the operator does not need to run them directly and the only
@@ -65,7 +67,9 @@ tag creates a GitHub Release with the .debs attached; production machines
 should install from Releases.
 
 Local builds work too and use the same script. You'll need
-`dpkg-buildpackage`, debhelper, a recent Go, `git`, `file`, and a C toolchain
+`dpkg-buildpackage`, debhelper 13.14 or newer (older versions ignore
+units under `/usr/lib/systemd/system`; on bookworm take it from backports), a
+recent Go, `git`, `file`, and a C toolchain
 (for scamper and the cgo builds), plus network access to clone the pinned
 sources and fetch Go modules:
 
@@ -89,19 +93,92 @@ force a full rebuild.
 ## Installing and configuring
 
 ```sh
-sudo apt install ./mlab-node_1.0.0_amd64.deb
-
-# Configure the node, then add the API key.
-sudoedit /etc/mlab-node/node.env
-sudoedit /etc/mlab-node/api-key.env
-
-# Start the whole stack (it is also enabled to start on boot).
-sudo systemctl start mlab-node.target
+sudo apt install ./mlab-node_1.1.0_amd64.deb
 ```
 
-Required settings in `/etc/mlab-node/node.env`: `ORGANIZATION`, `IATA`,
-`INTERFACE_NAME`, `INTERFACE_MAXRATE`, `UPLINK`, `IPV4`, `TYPE` (and `IPV6` if
-the node is reachable over IPv6). `API_KEY` goes in `/etc/mlab-node/api-key.env`.
+The installer asks for the node's configuration through debconf (the usual
+terminal dialogs) and, once every required setting has a value, starts the
+whole stack (it is also enabled to start on boot). Every question is
+pre-filled: with the value already in `/etc/mlab-node/*.env` when there is one,
+otherwise, on a fresh install, with a guess derived from the host. Check the
+guesses.
+
+| Setting | Asked as | Pre-filled with |
+|---|---|---|
+| `API_KEY` | API key, not echoed | (no guess; cleared from debconf once written) |
+| `IATA` | nearest large international airport | (no guess: a nearest-airport lookup proposes airfields; the dialog links a list of international airports) |
+| `PROBABILITY` | load-balancer probability | `0.1` |
+| `INTERFACE_NAME` | measurement interface | the default route's interface |
+| `UPLINK` | uplink speed | the link speed the interface reports (`/sys/class/net/*/speed`), if any |
+| `INTERFACE_MAXRATE` | max transmit rate | M-Lab's recommendation for the uplink: 1g → 150000000, 10g → 7000000000, else 75% of the uplink |
+| `IPV4` | public IPv4 address | the address outbound traffic comes from (ipinfo.io), else the default route's source address if public |
+| `IPV6` | public IPv6 address | likewise, over IPv6; optional |
+| `TYPE` | machine type | `virtual`/`physical` per `systemd-detect-virt` |
+| (unattended upgrades) | yes/no, default yes | see [Unattended upgrades](#unattended-upgrades) |
+
+Answers are validated (uplink is lowercased for you); an invalid
+one is explained and asked again. To go through the questions again, with
+the current values pre-filled:
+
+```sh
+sudo dpkg-reconfigure mlab-node
+```
+
+The files can also be edited by hand, followed by `sudo systemctl restart
+mlab-node.target`. The package only ever replaces the `KEY=value` lines it
+asks about, so comments, hand edits and extra settings (such as a `PROJECT`
+override) survive upgrades and reconfigurations. If a required setting is
+still empty after installation, the stack is not started and the postinst
+says so.
+
+### Unattended installation
+
+Preseed the answers and install noninteractively; questions without a
+preseeded answer take the default or the guess:
+
+```sh
+sudo debconf-set-selections <<EOF
+mlab-node mlab-node/api-key password <api key>
+mlab-node mlab-node/iata string lhr
+mlab-node mlab-node/uplink string 10g
+mlab-node mlab-node/type select physical
+mlab-node mlab-node/unattended-upgrades boolean true
+EOF
+sudo env DEBIAN_FRONTEND=noninteractive apt install ./mlab-node_1.1.0_amd64.deb
+```
+
+The question names are listed in `debian/mlab-node.templates`. Preseeded
+answers only apply to the first install: once `/etc/mlab-node/node.env`
+exists, what it assigns wins, even an empty value, so an operator edit is
+never overwritten by an older debconf answer. On upgrades nothing is asked:
+the existing configuration is kept as is. To change settings on an
+installed node, edit the file or run `dpkg-reconfigure mlab-node`.
+
+There is no organization setting: the organization is a property of the API
+key on the Autojoin side, and the node learns it from the hostname it is
+registered under (`<machine>.<org>.<project>.measurement-lab.org`).
+`mlab-node-register-ready.service` exports it as `ORGANIZATION` in
+`/run/mlab-node/metadata/registration.env` for jostler (GCS path) and ndt-server
+(metrics label).
+
+## Unattended upgrades
+
+The installer asks (default: yes) whether the machine should install the
+distribution's security updates and new versions of `mlab-node` on its own.
+Accepting writes `/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades`,
+which turns on the daily `unattended-upgrade` run (`APT::Periodic::*`) and
+allows upgrades from the Debian and Ubuntu security archives and from the
+M-Lab APT repository (origin and label `mlab-node`), on top of whatever
+`/etc/apt/apt.conf.d/50unattended-upgrades` already allows. Declining (or
+answering no to `dpkg-reconfigure mlab-node`) removes that snippet and leaves
+the rest of the apt configuration alone.
+
+The `mlab-node` package itself is only upgraded automatically once the M-Lab
+APT repository is in the machine's APT sources. On an upgrade the postinst
+restarts `mlab-node.target` gracefully (ndt-server drains running tests
+first). Kernel security updates still need a reboot; unattended-upgrades can
+do that too (`Unattended-Upgrade::Automatic-Reboot`), but this package does
+not turn it on.
 
 ## Operating
 
@@ -137,4 +214,4 @@ Once the stable repository is made public, the same line without the `ar+` trans
 
 M-Lab runs this package on an `autonode-deb` VM in `mlab-sandbox` and in `mlab-staging` (us-central1, Terraform-managed in [terraform-support](https://github.com/m-lab/terraform-support), `modules/autojoin`), the deb-package counterpart of the `autonode` Docker Compose test VM. Each VM tracks its own project's `mlab-node` repository: the startup script (`scripts/setup-autonode-deb.sh` in terraform-support) configures the APT source and a systemd timer that runs `apt-get install --only-upgrade mlab-node` every 15 minutes, so on staging every merge to `main` reaches the VM on its own; the package's postinst restarts the stack gracefully on upgrade. The timer only upgrades an installed package, so a VM needs a one-time install and `/etc/mlab-node/*.env` configuration first.
 
-Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it, writes `/etc/mlab-node/node.env` and `/etc/mlab-node/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.
+Branches under development deploy through Cloud Build instead: a trigger on `sandbox-*` branches runs [`.build/cloudbuild.yaml`](.build/cloudbuild.yaml), whose first step builds the .deb in a `golang:1-bookworm` container with a `~wip` version stamp (above `~dev` snapshots, so the periodic upgrade does not replace the branch under test; below the release version), and [`.build/deploy.sh`](.build/deploy.sh) then copies it to the VM over IAP, installs it noninteractively (debconf takes its defaults and guesses), writes `/etc/mlab-node/node.env` and `/etc/mlab-node/api-key.env` (overriding `PROJECT`/`LOCATE_URL`/`AUTH_URL` to the project's own Autojoin/Locate), and restarts `mlab-node.target`. The trigger supplies `_API_KEY` and `_PROBABILITY` as substitutions. `-upload-schema` is left at the package default (`false`): schema uploads are manual and intentional.

@@ -14,13 +14,13 @@ d /run/mlab-node                     0755 mlab-node mlab-node -
 d /run/mlab-node/sockets             2770 mlab-node mlab-node -
 d /run/mlab-node/metadata            2755 mlab-node mlab-node -
 
-# We want the API key file to be 0600 root:root. However, the
-# package ships it as 0644 root:root. The line below exists so
-# that systemd-tmpfiles enforces the right permissions. This happens
-# on package install and during each boot. The implication is that
-# a sysadmin changing the file permissions would see such changes
-# reverted after the next boot. We add a note about this here,
-# as well as in the file itself, since it may be confusing.
+# We want the API key file to be 0600 root:root. The postinst creates it
+# that way (from /usr/share/mlab-node/templates/api-key.env); the line below
+# makes systemd-tmpfiles enforce the permissions as well, on package
+# install and during each boot. The implication is that a sysadmin
+# changing the file permissions would see such changes reverted after
+# the next boot. We add a note about this here, as well as in the file
+# itself, since it may be confusing.
 #
 # Regarding our choice to use 0600 root:root, it is safe because we use
 # `EnvironmentFile=`, documented in systemd.exec(5) as follows:

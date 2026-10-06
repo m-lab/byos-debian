@@ -12,6 +12,8 @@ BindsTo=mlab-node-register.service
 Type=exec
 EnvironmentFile=/usr/share/mlab-node/static.env
 EnvironmentFile=/etc/mlab-node/node.env
+# ORGANIZATION, derived from the registration by register-ready.
+EnvironmentFile=/run/mlab-node/metadata/registration.env
 Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab-node/node/service-account-autojoin.json
 ExecStart=/usr/libexec/mlab-node/jostler \
   -mlab-node-name=@/var/lib/mlab-node/node/hostname \

@@ -8,11 +8,10 @@
 # Cloud Build logs.
 set -euo pipefail
 
-USAGE="$0 <project> <organization> <api-key> <probability>"
+USAGE="$0 <project> <api-key> <probability>"
 PROJECT=${1:?Please provide the GCP project (e.g., mlab-sandbox): ${USAGE}}
-ORG=${2:?Please provide the organization (e.g., mlab): ${USAGE}}
-API_KEY=${3:?Please provide the API key: ${USAGE}}
-PROBABILITY=${4:?Please provide the probability: ${USAGE}}
+API_KEY=${2:?Please provide the API key: ${USAGE}}
+PROBABILITY=${3:?Please provide the probability: ${USAGE}}
 
 # The test VM is always in us-central1, which is OMA. Its zone within the
 # region follows GCP capacity (set in terraform-support), so look it up.
@@ -47,9 +46,14 @@ gcloud --project "${PROJECT}" compute ssh --zone "${VM_ZONE}" \
     set -euo pipefail
 
     # Install/upgrade the package. --allow-downgrades because Cloud Build
-    # version stamps are unique but not monotonic.
+    # version stamps are unique but not monotonic. Noninteractive: the
+    # package asks its configuration through debconf, and without a
+    # terminal debconf would otherwise fall back to reading answers from
+    # stdin, i.e. from the rest of this script. The defaults it takes are
+    # overwritten below.
     sudo apt-get update
-    sudo apt-get install -y --allow-downgrades ~/mlab-node.deb
+    sudo env DEBIAN_FRONTEND=noninteractive \
+      apt-get install -y --allow-downgrades ~/mlab-node.deb
 
     # Find the external v4 and v6 addresses for this machine. IPV6 is
     # optional, so do not fail if there is no v6 connectivity.
@@ -61,7 +65,6 @@ gcloud --project "${PROJECT}" compute ssh --zone "${VM_ZONE}" \
     # NOTE: -upload-schema stays false (the package default): schema uploads
     # are manual and intentional, never part of an automated deployment.
     sudo tee /etc/mlab-node/node.env >/dev/null <<EOC
-ORGANIZATION=${ORG}
 IATA=${IATA}
 PROBABILITY=${PROBABILITY}
 INTERFACE_NAME=${INTERFACE_NAME}

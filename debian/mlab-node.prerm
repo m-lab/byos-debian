@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+# Stop the whole stack before the package's files are removed. debhelper
+# would normally add this, but dh_installsystemd --no-start (see
+# debian/rules) also drops its stop-on-remove snippet, so it is spelled out
+# here. Every component is PartOf=mlab-node.target, so stopping the target
+# stops them all; ndt-server drains running tests first (up to 100s, see its
+# unit), which is why removal is not instant. Not on upgrade: the postinst
+# restarts the stack once the new files are in place.
+if [ "$1" = "remove" ] && [ -d /run/systemd/system ]; then
+    deb-systemd-invoke stop mlab-node.target >/dev/null || true
+fi
+
+#DEBHELPER#

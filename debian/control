@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Measurement Lab <support@measurementlab.net>
 Build-Depends:
  debhelper-compat (= 13),
+ debhelper (>= 13.14~),
  file,
  golang-go (>= 2:1.21~),
  git,
@@ -21,7 +22,9 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  curl,
+ iproute2,
  kmod,
+ unattended-upgrades,
 Description: M-Lab BYOS node measurement stack
  Native systemd packaging of the M-Lab BYOS Network Diagnostic Tool
  (NDT) measurement platform.

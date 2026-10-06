@@ -1,25 +1,128 @@
 #!/bin/sh
 set -e
 
+# Debconf answers (asked by debian/mlab-node.config) are written to the
+# configuration files below. They are generated, not conffiles: the postinst
+# edits them, which Debian policy forbids for conffiles. Each edit only
+# replaces the KEY=value lines it owns, so comments, operator edits and any
+# extra settings (e.g. a PROJECT override) survive.
+. /usr/share/debconf/confmodule
+
+TEMPLATE_DIR=/usr/share/mlab-node/templates
+ENV_FILE=/etc/mlab-node/node.env
+KEY_FILE=/etc/mlab-node/api-key.env
+APT_CONF=/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades
+
+# set_env KEY VALUE FILE: set KEY=VALUE in FILE in place, replacing the
+# existing assignment (and dropping duplicates) or appending one. VALUE is
+# passed through the environment so awk never interprets it.
+set_env() {
+    tmp=$(mktemp "$3.XXXXXX")
+    KEY="$1" VAL="$2" awk '
+        BEGIN { key = ENVIRON["KEY"]; val = ENVIRON["VAL"]; done = 0 }
+        $0 ~ ("^[ \t]*" key "=") { if (!done) { print key "=" val; done = 1 }; next }
+        { print }
+        END { if (!done) print key "=" val }
+    ' "$3" > "$tmp"
+    # cat, not mv: keep the destination's mode and ownership.
+    cat "$tmp" > "$3"
+    rm -f "$tmp"
+}
+
+env_value() {
+    [ -r "$2" ] || return 0
+    sed -n "s/^[[:space:]]*$1=//p" "$2" | tail -n 1 | sed "s/^[\"']//; s/[\"']\$//"
+}
+
+if [ "$1" = "configure" ]; then
+    [ -e "$ENV_FILE" ] || install -m 0644 -o root -g root "$TEMPLATE_DIR/node.env" "$ENV_FILE"
+    [ -e "$KEY_FILE" ] || install -m 0600 -o root -g root "$TEMPLATE_DIR/api-key.env" "$KEY_FILE"
+
+    for pair in iata:IATA probability:PROBABILITY \
+                interface-name:INTERFACE_NAME uplink:UPLINK \
+                interface-maxrate:INTERFACE_MAXRATE ipv4:IPV4 ipv6:IPV6 type:TYPE; do
+        db_get "mlab-node/${pair%%:*}"
+        set_env "${pair#*:}" "$RET" "$ENV_FILE"
+    done
+
+    # An empty answer means "keep the existing key" (the config script never
+    # loads the key into debconf). Clear it once written: debconf is not the
+    # place to keep a secret.
+    db_get mlab-node/api-key
+    if [ -n "$RET" ]; then
+        set_env API_KEY "$RET" "$KEY_FILE"
+        db_set mlab-node/api-key ""
+    fi
+
+    # Unattended upgrades: one apt.conf snippet turns the periodic
+    # unattended-upgrade run on and adds the origins to upgrade from, on top
+    # of whatever /etc/apt/apt.conf.d/50unattended-upgrades already allows
+    # (Origins-Pattern is a list; apt.conf lists accumulate across files). The
+    # distribution security patterns are spelled out so security updates are
+    # covered even where the default list was trimmed. Answering "no" only
+    # removes this snippet; nothing else in the apt configuration is touched.
+    db_get mlab-node/unattended-upgrades
+    if [ "$RET" = "true" ]; then
+        cat > "$APT_CONF" <<'APTCONF'
+// Managed by the mlab-node package; edits are lost on reconfigure. Answer
+// "no" to "dpkg-reconfigure mlab-node" to remove it.
+//
+// Runs unattended-upgrade daily (apt-daily-upgrade.timer) for the
+// distribution's security updates and the mlab-node package.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+
+Unattended-Upgrade::Origins-Pattern {
+        // Distribution security updates: Debian (label Debian-Security,
+        // codename <release>-security since bullseye) and Ubuntu (suite
+        // <release>-security).
+        "origin=Debian,codename=${distro_codename},label=Debian-Security";
+        "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+        "origin=Ubuntu,archive=${distro_codename}-security,label=Ubuntu";
+        // The M-Lab mlab-node APT repository (Artifact Registry publishes it
+        // with Origin and Label "mlab-node" in every M-Lab project).
+        "origin=mlab-node,label=mlab-node";
+};
+APTCONF
+    else
+        rm -f "$APT_CONF"
+    fi
+fi
+
 #DEBHELPER#
 
-# On upgrade ($2 is the previously-installed version), restart the stack so
-# it picks up the new binaries and unit files. The explicit daemon-reload
-# mirrors dh_installsystemd's own restart-after-upgrade snippet: debhelper
-# 13.31 defers reload to a dpkg file trigger that only fires after postinst,
-# so without it the restart would use the stale in-memory units. Every
-# component is PartOf=mlab-node.target and pulled in by it, so restarting the
-# target cycles the whole stack. On first install ($2 is empty) do nothing:
-# the target is enabled but must not start before the operator configures
-# /etc/mlab-node/*.env.
-if [ "$1" = "configure" ] && [ -n "$2" ] && [ -d /run/systemd/system ]; then
-    systemctl --system daemon-reload >/dev/null || true
-    # --no-block: queue the restart and return, instead of holding dpkg for
-    # the minutes the stack can take to come up (register-ready gates every
-    # service on a registration retry loop). Startup failures land in the
-    # journal, not the apt transcript. systemctl is called directly because
-    # deb-systemd-invoke cannot forward --no-block; the policy-rc.d layer it
-    # provides matters in chroots, which the /run/systemd/system guard
-    # already excludes.
-    systemctl --no-block restart mlab-node.target >/dev/null || true
+db_stop
+
+if [ "$1" = "configure" ]; then
+    missing=""
+    for key in IATA PROBABILITY INTERFACE_NAME UPLINK INTERFACE_MAXRATE IPV4 TYPE; do
+        [ -n "$(env_value "$key" "$ENV_FILE")" ] || missing="$missing $key"
+    done
+    [ -n "$(env_value API_KEY "$KEY_FILE")" ] || missing="$missing API_KEY"
+
+    if [ -n "$missing" ]; then
+        cat >&2 <<MSG
+mlab-node: not started, the configuration is incomplete (unset:${missing# }).
+mlab-node: run "dpkg-reconfigure mlab-node", or edit /etc/mlab-node/node.env
+mlab-node: and /etc/mlab-node/api-key.env, then "systemctl start mlab-node.target".
+MSG
+    elif [ -d /run/systemd/system ]; then
+        # The configuration is complete: (re)start the stack so it runs with
+        # the values just written and, on upgrade, the new binaries and unit
+        # files. Every component is PartOf=mlab-node.target, so restarting
+        # the target cycles the whole stack; on a first install restart is
+        # just start. The explicit daemon-reload mirrors dh_installsystemd's
+        # own restart-after-upgrade snippet: debhelper 13.31 defers reload to
+        # a dpkg file trigger that only fires after postinst, so without it
+        # the restart would use the stale in-memory units.
+        systemctl --system daemon-reload >/dev/null || true
+        # --no-block: queue the restart and return, instead of holding dpkg
+        # for the minutes the stack can take to come up (register-ready gates
+        # every service on a registration retry loop). Startup failures land
+        # in the journal, not the apt transcript. systemctl is called directly
+        # because deb-systemd-invoke cannot forward --no-block; the
+        # policy-rc.d layer it provides matters in chroots, which the
+        # /run/systemd/system guard already excludes.
+        systemctl --no-block restart mlab-node.target >/dev/null || true
+    fi
 fi
