@@ -84,9 +84,8 @@ anything that leaves your machine.
 The build downloads the M-Lab components' official release binaries and the
 upstream node_exporter release, verifies each against the sha256 pinned in
 `.build/components.env`, and stages them under `binaries/`. scamper is built
-from the source tarball traceroute-caller vendors. Downloads are cached under
-`binaries/.downloads/` and the scamper build under `binaries/.stamps/`; delete
-`binaries/` to start over.
+from the source tarball traceroute-caller vendors on every build. Downloads
+are cached under `binaries/.downloads/`; delete `binaries/` to start over.
 
 To update a component, change its tag in `.build/components.env` and copy the
 new sha256 from the `checksums.txt` attached to that release. To test an

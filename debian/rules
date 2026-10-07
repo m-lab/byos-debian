@@ -13,8 +13,7 @@ execute_after_dh_install:
 
 # Stage the component binaries pinned in .build/components.env: the
 # components' official release binaries, checksum-verified, plus scamper
-# built from source. The script caches downloads and the scamper build under
-# binaries/.
+# built from source. The script caches downloads under binaries/.
 override_dh_auto_build:
 	./.build/stage-binaries.sh
 
