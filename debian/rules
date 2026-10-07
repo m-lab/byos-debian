@@ -11,12 +11,11 @@
 execute_after_dh_install:
 	dh_installsysusers
 
-# Build the component binaries from the pinned upstream sources. The script
-# owns its own caching: each component carries a recipe-keyed stamp under
-# binaries/.stamps/, so only components whose pin or build flags changed are
-# rebuilt.
+# Stage the component binaries pinned in .build/components.env: the
+# components' official release binaries, checksum-verified, plus scamper
+# built from source. The script caches downloads under binaries/.
 override_dh_auto_build:
-	./.build/build-binaries.sh
+	./.build/stage-binaries.sh
 
 # root/ mirrors the installed filesystem (root/etc/... -> /etc/..., etc.) and
 # stays pristine and tracked; copy it wholesale instead of enumerating every
@@ -50,9 +49,10 @@ override_dh_auto_install:
 override_dh_installsystemd:
 	dh_installsystemd --no-start --no-stop-on-upgrade
 
-# The Go binaries are linked with -s -w (see .build/build-binaries.sh), which
-# leaves dh_strip nothing to do except scamper (C). Strip it, but skip the
-# dbgsym package; nothing would consume it. dwz does not apply to Go.
+# The M-Lab release binaries are linked with -s -w, which leaves dh_strip
+# scamper (C) and the upstream node_exporter release (shipped unstripped).
+# Strip them, but skip the dbgsym package; nothing would consume it. dwz does
+# not apply to Go.
 override_dh_strip:
 	dh_strip --no-automatic-dbgsym
 

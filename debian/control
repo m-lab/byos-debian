@@ -6,8 +6,7 @@ Build-Depends:
  debhelper-compat (= 13),
  debhelper (>= 13.14~),
  file,
- golang-go (>= 2:1.21~),
- git,
+ curl,
  ca-certificates,
  gcc,
  make,
@@ -17,7 +16,7 @@ Homepage: https://github.com/m-lab/byos-debian
 Rules-Requires-Root: no
 
 Package: mlab-node
-Architecture: amd64 arm64
+Architecture: amd64
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},

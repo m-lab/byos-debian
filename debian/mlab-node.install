@@ -2,7 +2,8 @@
 # copied wholesale by debian/rules' override_dh_auto_install. Only the
 # generated build output — not tracked, not part of root/ — is listed here.
 
-# Component binaries (built from the pinned sources by .build/build-binaries.sh).
+# Component binaries (staged by .build/stage-binaries.sh from the pins in
+# .build/components.env).
 binaries/ndt-server                     usr/libexec/mlab-node
 binaries/heartbeat                      usr/libexec/mlab-node
 binaries/uuid-annotator                 usr/libexec/mlab-node
