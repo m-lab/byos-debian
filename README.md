@@ -42,7 +42,8 @@ file at `root/foo/bar` is installed as `/foo/bar`.
 | `/usr/share/mlab-node/html/`       | static content served by ndt-server             |
 | `/usr/share/mlab-node/static.env`  | package-owned constants                         |
 | `/var/lib/mlab-node/autocert/`     | Let's Encrypt certificate cache                 |
-| `/var/lib/mlab-node/node/`         | registration data + service-account credentials |
+| `/var/lib/mlab-node/node/private/` | service-account credentials                     |
+| `/var/lib/mlab-node/node/shared/`  | registration data                               |
 | `/var/lib/mlab-node/resultsdir/`   | measurement results awaiting upload             |
 | `/var/lib/mlab-node/schemas/`      | generated JSON schemas + uuid.prefix            |
 | `/usr/share/mlab-node/templates/`  | initial versions of the two `/etc/mlab-node/*.env` files |

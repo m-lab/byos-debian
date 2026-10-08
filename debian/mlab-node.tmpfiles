@@ -1,9 +1,11 @@
 # Persistent state under /var/lib/mlab-node and runtime dirs under /run/mlab-node.
 # setgid (2xxx) so files and sockets created here inherit the mlab-node group.
 
-# Persistent state.
+# Persistent state as documented in README.md.
 d /var/lib/mlab-node                 0755 mlab-node mlab-node -
 d /var/lib/mlab-node/node            2750 mlab-node mlab-node -
+d /var/lib/mlab-node/node/private    2700 mlab-node mlab-node -
+d /var/lib/mlab-node/node/shared     2750 mlab-node mlab-node -
 d /var/lib/mlab-node/schemas         2755 mlab-node mlab-node -
 d /var/lib/mlab-node/resultsdir      2755 mlab-node mlab-node -
 d /var/lib/mlab-node/resultsdir/ndt  2755 mlab-node mlab-node -
