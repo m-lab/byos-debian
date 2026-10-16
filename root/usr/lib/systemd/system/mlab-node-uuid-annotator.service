@@ -5,7 +5,7 @@ PartOf=mlab-node.target
 Requires=mlab-node-register-ready.service
 After=mlab-node-register-ready.service
 # Soft dependency on ndt-server: the annotator connects to ndt-server's
-# tcpinfo events.sock, but must not be torn down if ndt-server restarts.
+# tcpinfo .../events/sock, but must not be torn down if ndt-server restarts.
 Wants=mlab-node-ndt-server.service
 After=mlab-node-ndt-server.service
 BindsTo=mlab-node-register.service
@@ -16,13 +16,13 @@ EnvironmentFile=/usr/share/mlab-node/static.env
 EnvironmentFile=/etc/mlab-node/node.env
 Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab-node/node/private/service-account-autojoin.json
 # Wait for ndt-server's events socket, and clear any stale annotator socket.
-ExecStartPre=/usr/libexec/mlab-node/wait-socket /run/mlab-node/sockets/events.sock
-ExecStartPre=/bin/rm -f /run/mlab-node/sockets/uuid-annotator.sock
+ExecStartPre=/usr/libexec/mlab-node/wait-socket /run/mlab-node/sockets/ndt/events/sock
+ExecStartPre=/bin/rm -f /run/mlab-node/sockets/ndt/uuid-annotator/sock
 ExecStart=/usr/libexec/mlab-node/uuid-annotator \
   -prometheusx.listen-address=:9992 \
   -datadir=/var/lib/mlab-node/resultsdir/ndt/annotation2 \
-  -tcpinfo.eventsocket=/run/mlab-node/sockets/events.sock \
-  -ipservice.sock=/run/mlab-node/sockets/uuid-annotator.sock \
+  -tcpinfo.eventsocket=/run/mlab-node/sockets/ndt/events/sock \
+  -ipservice.sock=/run/mlab-node/sockets/ndt/uuid-annotator/sock \
   -maxmind.url=gs://downloader-${PROJECT}/Maxmind/current/GeoLite2-City.tar.gz \
   -routeview-v4.url=gs://downloader-${PROJECT}/RouteViewIPv4/current/routeview.pfx2as.gz \
   -routeview-v6.url=gs://downloader-${PROJECT}/RouteViewIPv6/current/routeview.pfx2as.gz \
@@ -32,10 +32,14 @@ ExecStart=/usr/libexec/mlab-node/uuid-annotator \
 Restart=always
 RestartSec=5
 
-# --- hardening ---
+# --- privilege separation ---
 User=mlab-node
 Group=mlab-node
-ReadWritePaths=/var/lib/mlab-node/resultsdir /run/mlab-node/sockets
+UMask=0002
+
+# --- hardening ---
+ReadWritePaths=/var/lib/mlab-node/resultsdir/ndt/annotation2 \
+  /run/mlab-node/sockets/ndt/uuid-annotator
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

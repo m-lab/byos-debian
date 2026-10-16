@@ -1,4 +1,9 @@
-# Shared system user/group for the M-Lab node services. A single identity owns
-# the service-account credential and the shared unix sockets, which are the only
-# things the components share. node-exporter runs as a DynamicUser instead.
-u mlab-node - "M-Lab node services" /var/lib/mlab-node /usr/sbin/nologin
+# See README.md for documentation regarding users and permissions.
+#
+# See also `mlab-node.tmpfiles`.
+
+u mlab-node     - "M-Lab node core services" /var/lib/mlab-node /usr/sbin/nologin
+u mlab-node-ndt - "M-Lab node NDT services"  /var/lib/mlab-node /usr/sbin/nologin
+
+# Provide read and traverse access to group-shared dirs.
+m mlab-node-ndt mlab-node

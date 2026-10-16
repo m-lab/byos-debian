@@ -32,22 +32,27 @@ and staged at package build time by `.build/stage-binaries.sh`.
 The [root](./root) directory mirrors the installed filesystem layout: a
 file at `root/foo/bar` is installed as `/foo/bar`.
 
-| Path                               | Contents                                        |
-|------------------------------------|-------------------------------------------------|
-| `/etc/mlab-node/api-key.env`       | M-Lab API key (`0600 root:root`)                |
-| `/etc/mlab-node/locate/verify.pub` | Locate token verification key                   |
-| `/etc/mlab-node/node.env`          | node configuration (non-secret), generated from the debconf answers |
-| `/run/mlab-node/sockets/`          | tcpinfo / ipservice unix sockets                |
-| `/usr/libexec/mlab-node/`          | binaries and scripts                            |
-| `/usr/share/mlab-node/html/`       | static content served by ndt-server             |
-| `/usr/share/mlab-node/static.env`  | package-owned constants                         |
-| `/var/lib/mlab-node/autocert/`     | Let's Encrypt certificate cache                 |
-| `/var/lib/mlab-node/node/private/` | service-account credentials                     |
-| `/var/lib/mlab-node/node/shared/`  | registration data                               |
-| `/var/lib/mlab-node/resultsdir/`   | measurement results awaiting upload             |
-| `/var/lib/mlab-node/schemas/`      | generated JSON schemas + uuid.prefix            |
-| `/usr/share/mlab-node/templates/`  | initial versions of the two `/etc/mlab-node/*.env` files |
-| `/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades` | unattended-upgrades settings (if enabled) |
+| Path                                                  | Contents                                                                 |
+|-------------------------------------------------------|--------------------------------------------------------------------------|
+| `/etc/apt/apt.conf.d/52mlab-node-unattended-upgrades` | unattended-upgrades settings (if enabled)                                |
+| `/etc/mlab-node/api-key.env`                          | M-Lab API key (`0600 root:root`)                                         |
+| `/etc/mlab-node/locate/verify.pub`                    | Locate token verification key                                            |
+| `/etc/mlab-node/node.env`                             | node configuration (non-secret), generated from the debconf answers      |
+| `/run/mlab-node/metadata/`                            | run-time M-Lab node metadata                                             |
+| `/run/mlab-node/sockets/ndt/events/sock`              | Unix socket emitting NDT test-started/test-finished events               |
+| `/run/mlab-node/sockets/ndt/uuid-annotator/sock`      | Unix socket with which uuid-annotator answers IP annotation queries      |
+| `/usr/libexec/mlab-node/`                             | binaries and scripts                                                     |
+| `/usr/share/mlab-node/html/`                          | static content served by ndt-server                                      |
+| `/usr/share/mlab-node/static.env`                     | package-owned constants                                                  |
+| `/usr/share/mlab-node/templates/`                     | initial versions of the two `/etc/mlab-node/*.env` files                 |
+| `/var/lib/mlab-node/autocert/ndt/`                    | Let's Encrypt certificates cache for NDT                                 |
+| `/var/lib/mlab-node/node/private/`                    | service-account credentials                                              |
+| `/var/lib/mlab-node/node/shared/`                     | registration data shared with measurement services                       |
+| `/var/lib/mlab-node/resultsdir/ndt/annotation2/`      | Spool for per-measurement IP addrs annotations awaiting upload to GCS    |
+| `/var/lib/mlab-node/resultsdir/ndt/hopannotation2/`   | Spool for per-traceroute hop annotations awaiting upload to GCS          |
+| `/var/lib/mlab-node/resultsdir/ndt/ndt7/`             | Spool for ndt7 measurement results awaiting upload to GCS                |
+| `/var/lib/mlab-node/resultsdir/ndt/scamper2/`         | Spool for scamper2 measurement results awaiting upload to GCS            |
+| `/var/lib/mlab-node/schemas/`                         | generated JSON schemas + uuid.prefix                                     |
 
 The binaries built by this package are installed under `/usr/libexec/mlab-node`
 because the operator does not need to run them directly and the only
@@ -56,6 +61,32 @@ purpose of `libexec` according to [FHS][fhs]. Debian supports FHS 3.0
 and hence `libexec` since version 4.1.5 of the Debian Policy.
 
 [fhs]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html
+
+### Privilege Separation
+
+The `ndt-server` and `traceroute-caller` services run under the `mlab-node-ndt`
+user identity; all other services run under the `mlab-node` user.
+
+We use `0700` permissions when only the user must be able to read specific
+files, `0750` when also the group needs read access, and `0770` when the
+group also needs to delete files. This means that the permissions are basically
+enforced by directory read and traversal permissions.
+
+The `mlab-node-ndt` user is also a member of the `mlab-node` group. Directories
+with read and traverse group access are thus shared with `mlab-node-ndt`.
+
+Beyond this basic principle, we also need to arrange for collaboration between
+the two distinct identities, as explained below.
+
+Jostler (the uploader process) runs with `mlab-node-ndt` in its supplementary
+groups, which allows it to delete measurements after their upload, since `ndt-server`
+and `traceroute-caller` run with `UMask=0002`.
+
+The `.../ndt/events/sock` socket is connectable by `mlab-node` because the `.../ndt/events`
+directory is setgid and owned by the `mlab-node` group and because `ndt-server` runs
+with `UMask=0002`. Likewise, `.../ndt/uuid-annotator/sock` is connectable by `mlab-node-ndt`
+because `.../ndt/uuid-annotator` is setgid and owned by the `mlab-node-ndt` group
+and `uuid-annotator` also runs with the `UMask=0002` configuration.
 
 ## Building the package
 

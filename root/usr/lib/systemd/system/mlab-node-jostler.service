@@ -44,6 +44,7 @@ RestartSec=5
 # --- hardening ---
 User=mlab-node
 Group=mlab-node
+SupplementaryGroups=mlab-node-ndt
 ReadWritePaths=/var/lib/mlab-node/resultsdir
 NoNewPrivileges=yes
 ProtectSystem=strict
