@@ -48,11 +48,11 @@ file at `root/foo/bar` is installed as `/foo/bar`.
 | `/var/lib/mlab-node/autocert/ndt/`                    | Let's Encrypt certificates cache for NDT                                 |
 | `/var/lib/mlab-node/node/private/`                    | service-account credentials                                              |
 | `/var/lib/mlab-node/node/shared/`                     | registration data shared with measurement services                       |
-| `/var/lib/mlab-node/resultsdir/ndt/annotation2/`      | Spool for per-measurement IP addrs annotations awaiting upload to GCS    |
-| `/var/lib/mlab-node/resultsdir/ndt/hopannotation2/`   | Spool for per-traceroute hop annotations awaiting upload to GCS          |
-| `/var/lib/mlab-node/resultsdir/ndt/ndt7/`             | Spool for ndt7 measurement results awaiting upload to GCS                |
-| `/var/lib/mlab-node/resultsdir/ndt/scamper2/`         | Spool for scamper2 measurement results awaiting upload to GCS            |
 | `/var/lib/mlab-node/schemas/`                         | generated JSON schemas + uuid.prefix                                     |
+| `/var/spool/mlab-node/ndt/annotation2/`               | Spool for per-measurement IP addrs annotations awaiting upload to GCS    |
+| `/var/spool/mlab-node/ndt/hopannotation2/`            | Spool for per-traceroute hop annotations awaiting upload to GCS          |
+| `/var/spool/mlab-node/ndt/ndt7/`                      | Spool for ndt7 measurement results awaiting upload to GCS                |
+| `/var/spool/mlab-node/ndt/scamper2/`                  | Spool for scamper2 measurement results awaiting upload to GCS            |
 
 The binaries built by this package are installed under `/usr/libexec/mlab-node`
 because the operator does not need to run them directly and the only
