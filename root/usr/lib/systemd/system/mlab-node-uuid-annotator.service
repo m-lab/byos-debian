@@ -35,6 +35,7 @@ RestartSec=5
 # --- privilege separation ---
 User=mlab-node
 Group=mlab-node
+SupplementaryGroups=mlab-node-event-socket
 UMask=0002
 
 # --- hardening ---
