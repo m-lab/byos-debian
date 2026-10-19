@@ -20,7 +20,7 @@ ExecStartPre=/usr/libexec/mlab-node/wait-socket /run/mlab-node/sockets/ndt/event
 ExecStartPre=/bin/rm -f /run/mlab-node/sockets/ndt/uuid-annotator/sock
 ExecStart=/usr/libexec/mlab-node/uuid-annotator \
   -prometheusx.listen-address=:9992 \
-  -datadir=/var/lib/mlab-node/resultsdir/ndt/annotation2 \
+  -datadir=/var/spool/mlab-node/ndt/annotation2 \
   -tcpinfo.eventsocket=/run/mlab-node/sockets/ndt/events/sock \
   -ipservice.sock=/run/mlab-node/sockets/ndt/uuid-annotator/sock \
   -maxmind.url=gs://downloader-${PROJECT}/Maxmind/current/GeoLite2-City.tar.gz \
@@ -38,7 +38,7 @@ Group=mlab-node
 UMask=0002
 
 # --- hardening ---
-ReadWritePaths=/var/lib/mlab-node/resultsdir/ndt/annotation2 \
+ReadWritePaths=/var/spool/mlab-node/ndt/annotation2 \
   /run/mlab-node/sockets/ndt/uuid-annotator
 NoNewPrivileges=yes
 ProtectSystem=strict

@@ -19,8 +19,8 @@ ExecStartPre=/usr/libexec/mlab-node/wait-socket \
 ExecStart=/usr/libexec/mlab-node/traceroute-caller \
   -scamper.bin=/usr/libexec/mlab-node/scamper \
   -prometheusx.listen-address=:9994 \
-  -traceroute-output=/var/lib/mlab-node/resultsdir/ndt/scamper2 \
-  -hopannotation-output=/var/lib/mlab-node/resultsdir/ndt/hopannotation2 \
+  -traceroute-output=/var/spool/mlab-node/ndt/scamper2 \
+  -hopannotation-output=/var/spool/mlab-node/ndt/hopannotation2 \
   -tcpinfo.eventsocket=/run/mlab-node/sockets/ndt/events/sock \
   -IPCacheTimeout=10m \
   -IPCacheUpdatePeriod=1m \
@@ -44,8 +44,8 @@ UMask=0002
 # ambient capability from traceroute-caller.
 AmbientCapabilities=CAP_NET_RAW
 CapabilityBoundingSet=CAP_NET_RAW
-ReadWritePaths=/var/lib/mlab-node/resultsdir/ndt/hopannotation2 \
-  /var/lib/mlab-node/resultsdir/ndt/scamper2
+ReadWritePaths=/var/spool/mlab-node/ndt/hopannotation2 \
+  /var/spool/mlab-node/ndt/scamper2
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

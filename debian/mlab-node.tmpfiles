@@ -27,18 +27,19 @@ d /var/lib/mlab-node/node                          0750 root          mlab-node 
 d /var/lib/mlab-node/node/private                  0700 mlab-node     mlab-node     -
 d /var/lib/mlab-node/node/shared                   0750 mlab-node     mlab-node     -
 
-d /var/lib/mlab-node/resultsdir                    0750 root          mlab-node     -
-d /var/lib/mlab-node/resultsdir/ndt                0750 root          mlab-node     -
+# Schemas are written by `mlab-node` and the group needs to read them.
+d /var/lib/mlab-node/schemas                       0750 mlab-node     mlab-node     -
+
+# Results awaiting upload and subsequent deletion.
+d /var/spool/mlab-node                             0750 root          mlab-node     -
+d /var/spool/mlab-node/ndt                         0750 root          mlab-node     -
 
 # Data entirely managed by the `mlab-node` identity.
-d /var/lib/mlab-node/resultsdir/ndt/annotation2    0700 mlab-node     mlab-node     -
+d /var/spool/mlab-node/ndt/annotation2             0700 mlab-node     mlab-node     -
 
 # Jostler has `mlab-node-ndt` as a supplementary group and must be able to write the
 # directories to delete already uploaded data.
-d /var/lib/mlab-node/resultsdir/ndt/hopannotation2 0770 mlab-node-ndt mlab-node-ndt -
-d /var/lib/mlab-node/resultsdir/ndt/ndt5           0770 mlab-node-ndt mlab-node-ndt -
-d /var/lib/mlab-node/resultsdir/ndt/ndt7           0770 mlab-node-ndt mlab-node-ndt -
-d /var/lib/mlab-node/resultsdir/ndt/scamper2       0770 mlab-node-ndt mlab-node-ndt -
-
-# Schemas are written by `mlab-node` and the group needs to read them.
-d /var/lib/mlab-node/schemas                       0750 mlab-node     mlab-node     -
+d /var/spool/mlab-node/ndt/hopannotation2          0770 mlab-node-ndt mlab-node-ndt -
+d /var/spool/mlab-node/ndt/ndt5                    0770 mlab-node-ndt mlab-node-ndt -
+d /var/spool/mlab-node/ndt/ndt7                    0770 mlab-node-ndt mlab-node-ndt -
+d /var/spool/mlab-node/ndt/scamper2                0770 mlab-node-ndt mlab-node-ndt -

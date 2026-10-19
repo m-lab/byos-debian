@@ -11,7 +11,7 @@ if [ "$1" = "purge" ]; then
     rm -f /etc/mlab-node/node.env /etc/mlab-node/api-key.env
     rm -f /etc/apt/apt.conf.d/52mlab-node-unattended-upgrades
     rmdir /etc/mlab-node 2>/dev/null || true
-    rm -rf /var/lib/mlab-node /run/mlab-node
+    rm -rf /var/lib/mlab-node /var/spool/mlab-node /run/mlab-node
 fi
 
 #DEBHELPER#
