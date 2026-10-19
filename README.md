@@ -82,11 +82,20 @@ Jostler (the uploader process) runs with `mlab-node-ndt` in its supplementary
 groups, which allows it to delete measurements after their upload, since `ndt-server`
 and `traceroute-caller` run with `UMask=0002`.
 
-The `.../ndt/events/sock` socket is connectable by `mlab-node` because the `.../ndt/events`
-directory is setgid and owned by the `mlab-node` group and because `ndt-server` runs
-with `UMask=0002`. Likewise, `.../ndt/uuid-annotator/sock` is connectable by `mlab-node-ndt`
-because `.../ndt/uuid-annotator` is setgid and owned by the `mlab-node-ndt` group
-and `uuid-annotator` also runs with the `UMask=0002` configuration.
+Regarding Unix socket communication between processes, we rely on the following
+directories, where the owner creates the sockets and the group allows connecting
+to the socket, and where `UMask=0002` leads to `0775` sockets:
+
+| Socket Dir                        | Owner           | Group                    | Perms  |
+| --------------------------------- | --------------- | ------------------------ | ------ |
+| `.../sockets/ndt/events/`         | `mlab-node-ndt` | `mlab-node-event-socket` | `2750` |
+| `.../sockets/ndt/uuid-annotator/` | `mlab-node`     | `mlab-node-ndt`          | `2750` |
+
+So, `uuid-annotator` can connect to `.../ndt/events/sock` owned by `ndt-server` because it
+belongs to the `mlab-node-event-socket` group; `traceroute-caller` can connect to
+`.../ndt/uuid-annotator/sock` owned by `uuid-annotator` because it belongs to the `mlab-node-ndt`
+group. No other service in the `mlab-node` group (including future experiments which will also
+be part of such a group) can connect to the NDT events socket.
 
 ## Building the package
 

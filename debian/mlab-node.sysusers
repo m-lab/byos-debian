@@ -5,5 +5,8 @@
 u mlab-node     - "M-Lab node core services" /var/lib/mlab-node /usr/sbin/nologin
 u mlab-node-ndt - "M-Lab node NDT services"  /var/lib/mlab-node /usr/sbin/nologin
 
+# Allow `uuid-annotator` to connect to events sockets owned by measurement services.
+g mlab-node-event-socket -
+
 # Provide read and traverse access to group-shared dirs.
 m mlab-node-ndt mlab-node

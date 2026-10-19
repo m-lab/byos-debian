@@ -13,7 +13,7 @@ d /run/mlab-node/metadata                          0700 mlab-node     mlab-node 
 # The socket dirs require the other group to be setgid to allow for cross connectivity.
 d /run/mlab-node/sockets                           0750 root          mlab-node     -
 d /run/mlab-node/sockets/ndt                       0750 root          mlab-node     -
-d /run/mlab-node/sockets/ndt/events                2750 mlab-node-ndt mlab-node     -
+d /run/mlab-node/sockets/ndt/events                2750 mlab-node-ndt mlab-node-event-socket -
 d /run/mlab-node/sockets/ndt/uuid-annotator        2750 mlab-node     mlab-node-ndt -
 
 d /var/lib/mlab-node                               0750 root          mlab-node     -
