@@ -14,7 +14,7 @@ BindsTo=mlab-node-register.service
 Type=exec
 EnvironmentFile=/usr/share/mlab-node/static.env
 EnvironmentFile=/etc/mlab-node/node.env
-Environment=GOOGLE_APPLICATION_CREDENTIALS=/var/lib/mlab-node/node/private/service-account-autojoin.json
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/run/mlab-node/registration/private/service-account-autojoin.json
 # Wait for ndt-server's events socket, and clear any stale annotator socket.
 ExecStartPre=/usr/libexec/mlab-node/wait-socket /run/mlab-node/sockets/ndt/events/sock
 ExecStartPre=/bin/rm -f /run/mlab-node/sockets/ndt/uuid-annotator/sock
@@ -26,9 +26,9 @@ ExecStart=/usr/libexec/mlab-node/uuid-annotator \
   -maxmind.url=gs://downloader-${PROJECT}/Maxmind/current/GeoLite2-City.tar.gz \
   -routeview-v4.url=gs://downloader-${PROJECT}/RouteViewIPv4/current/routeview.pfx2as.gz \
   -routeview-v6.url=gs://downloader-${PROJECT}/RouteViewIPv6/current/routeview.pfx2as.gz \
-  -siteinfo.url=file:///var/lib/mlab-node/node/shared/annotation.json \
+  -siteinfo.url=file:///run/mlab-node/registration/shared/annotation.json \
   -asname.url=file:///usr/share/mlab-node/asnames.ipinfo.csv \
-  -hostname=@/var/lib/mlab-node/node/shared/hostname
+  -hostname=@/run/mlab-node/registration/shared/hostname
 Restart=always
 RestartSec=5
 

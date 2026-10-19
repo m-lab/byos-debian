@@ -8,7 +8,7 @@
 # hostname file exists.
 set -eu
 
-hostname=$(cat /var/lib/mlab-node/node/shared/hostname)
+hostname=$(cat /run/mlab-node/registration/shared/hostname)
 org=$(printf '%s' "${hostname}" | cut -s -d. -f2)
 if [ -z "${org}" ]; then
   echo "mlab-node: cannot derive the organization from hostname '${hostname}'" >&2

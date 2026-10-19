@@ -39,6 +39,8 @@ file at `root/foo/bar` is installed as `/foo/bar`.
 | `/etc/mlab-node/locate/verify.pub`                    | Locate token verification key                                            |
 | `/etc/mlab-node/node.env`                             | node configuration (non-secret), generated from the debconf answers      |
 | `/run/mlab-node/metadata/`                            | run-time M-Lab node metadata                                             |
+| `/run/mlab-node/registration/private/`                | service-account credentials                                              |
+| `/run/mlab-node/registration/shared/`                 | registration data shared with measurement services                       |
 | `/run/mlab-node/sockets/ndt/events/sock`              | Unix socket emitting NDT test-started/test-finished events               |
 | `/run/mlab-node/sockets/ndt/uuid-annotator/sock`      | Unix socket with which uuid-annotator answers IP annotation queries      |
 | `/usr/libexec/mlab-node/`                             | binaries and scripts                                                     |
@@ -46,8 +48,6 @@ file at `root/foo/bar` is installed as `/foo/bar`.
 | `/usr/share/mlab-node/static.env`                     | package-owned constants                                                  |
 | `/usr/share/mlab-node/templates/`                     | initial versions of the two `/etc/mlab-node/*.env` files                 |
 | `/var/lib/mlab-node/autocert/ndt/`                    | Let's Encrypt certificates cache for NDT                                 |
-| `/var/lib/mlab-node/node/private/`                    | service-account credentials                                              |
-| `/var/lib/mlab-node/node/shared/`                     | registration data shared with measurement services                       |
 | `/var/lib/mlab-node/schemas/`                         | generated JSON schemas + uuid.prefix                                     |
 | `/var/spool/mlab-node/ndt/annotation2/`               | Spool for per-measurement IP addrs annotations awaiting upload to GCS    |
 | `/var/spool/mlab-node/ndt/hopannotation2/`            | Spool for per-traceroute hop annotations awaiting upload to GCS          |

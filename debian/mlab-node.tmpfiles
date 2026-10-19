@@ -10,6 +10,12 @@ d /run/mlab-node                                   0750 root          mlab-node 
 # The metadata is only sourced by systemd when starting units so group does not need access.
 d /run/mlab-node/metadata                          0700 mlab-node     mlab-node     -
 
+# Every `register` run rewrites the data including the required initial run. So this data
+# does not need to persist. Note how we separate private and readable-by-group data.
+d /run/mlab-node/registration                      0750 root          mlab-node     -
+d /run/mlab-node/registration/private              0700 mlab-node     mlab-node     -
+d /run/mlab-node/registration/shared               0750 mlab-node     mlab-node     -
+
 # The socket dirs require the other group to be setgid to allow for cross connectivity.
 d /run/mlab-node/sockets                           0750 root          mlab-node     -
 d /run/mlab-node/sockets/ndt                       0750 root          mlab-node     -
@@ -22,11 +28,6 @@ d /var/lib/mlab-node                               0750 root          mlab-node 
 # latter has the "OK to wipe" semantics, but Let's Encrypt has rate limits!
 d /var/lib/mlab-node/autocert                      0750 root          mlab-node     -
 d /var/lib/mlab-node/autocert/ndt                  0700 mlab-node-ndt mlab-node-ndt -
-
-# We separate data private to user `mlab-node` and data shared with the `mlab-node` group.
-d /var/lib/mlab-node/node                          0750 root          mlab-node     -
-d /var/lib/mlab-node/node/private                  0700 mlab-node     mlab-node     -
-d /var/lib/mlab-node/node/shared                   0750 mlab-node     mlab-node     -
 
 # Schemas are written by `mlab-node` and the group needs to read them.
 d /var/lib/mlab-node/schemas                       0750 mlab-node     mlab-node     -
