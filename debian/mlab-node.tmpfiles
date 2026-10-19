@@ -18,7 +18,8 @@ d /run/mlab-node/sockets/ndt/uuid-annotator        2750 mlab-node     mlab-node-
 
 d /var/lib/mlab-node                               0750 root          mlab-node     -
 
-# Each service gets its private autocert dir.
+# Each service gets its private autocert dir. We prefer `/var/lib` to `/var/cache` because the
+# latter has the "OK to wipe" semantics, but Let's Encrypt has rate limits!
 d /var/lib/mlab-node/autocert                      0750 root          mlab-node     -
 d /var/lib/mlab-node/autocert/ndt                  0700 mlab-node-ndt mlab-node-ndt -
 
