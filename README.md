@@ -158,7 +158,7 @@ guesses.
 | `PROBABILITY` | load-balancer probability | `0.1` |
 | `INTERFACE_NAME` | measurement interface | the default route's interface |
 | `UPLINK` | uplink speed | the link speed the interface reports (`/sys/class/net/*/speed`), if any |
-| `INTERFACE_MAXRATE` | max transmit rate, with a unit suffix: Mbit/s (`450m`) or Gbit/s (`7g`, `2.5g`) | M-Lab's recommendation for the uplink: 1g → `150m`, 10g → `7g`, else 75% of the uplink |
+| `INTERFACE_MAXRATE` | max transmit rate, with a unit suffix: Mbit/s (`450m`) or Gbit/s (`7g`, `2.5g`) | M-Lab's recommendation for a single server: 1g → `300m`, 10g → `7g`, else 75% of the uplink |
 | `IPV4` | public IPv4 address | the address outbound traffic comes from (ipinfo.io), else the default route's source address if public |
 | `IPV6` | public IPv6 address | likewise, over IPv6; optional |
 | `TYPE` | machine type | `virtual`/`physical` per `systemd-detect-virt` |
