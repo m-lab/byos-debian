@@ -34,6 +34,22 @@ env_value() {
     sed -n "s/^[[:space:]]*$1=//p" "$2" | tail -n 1 | sed "s/^[\"']//; s/[\"']\$//"
 }
 
+# mbit_to_bits VALUE: the max-rate answer, asked in Mbit/s (N, Ng or N.Ng),
+# in bit/s, the unit ndt-server takes, rounded down to a whole Mbit/s.
+# Anything else passes through unchanged. Keep in sync with the copy in
+# debian/mlab-node.config.
+mbit_to_bits() {
+    case "$1" in
+        *[!0-9.g]*|''|.*|*.|*.*.*|*g?*|*.g) printf '%s\n' "$1" ;;
+        *g) g=${1%g}; whole=$(printf '%s' "${g%%.*}" | sed 's/^0*//'); frac=
+            case "$g" in *.*) frac=${g#*.} ;; esac
+            frac=$(printf '%-3.3s' "$frac" | tr ' ' 0 | sed 's/^0*//')
+            echo "$(( (${whole:-0} * 1000 + ${frac:-0}) * 1000000 ))" ;;
+        *.*) printf '%s\n' "$1" ;;
+        *) v=$(printf '%s' "$1" | sed 's/^0*//'); echo "$(( ${v:-0} * 1000000 ))" ;;
+    esac
+}
+
 if [ "$1" = "configure" ]; then
     [ -e "$ENV_FILE" ] || install -m 0644 -o root -g root "$TEMPLATE_DIR/node.env" "$ENV_FILE"
     [ -e "$KEY_FILE" ] || install -m 0600 -o root -g root "$TEMPLATE_DIR/api-key.env" "$KEY_FILE"
@@ -42,7 +58,9 @@ if [ "$1" = "configure" ]; then
                 interface-name:INTERFACE_NAME uplink:UPLINK \
                 interface-maxrate:INTERFACE_MAXRATE ipv4:IPV4 ipv6:IPV6 type:TYPE; do
         db_get "mlab-node/${pair%%:*}"
-        set_env "${pair#*:}" "$RET" "$ENV_FILE"
+        val=$RET
+        [ "$pair" != interface-maxrate:INTERFACE_MAXRATE ] || val=$(mbit_to_bits "$val")
+        set_env "${pair#*:}" "$val" "$ENV_FILE"
     done
 
     # An empty answer means "keep the existing key" (the config script never
