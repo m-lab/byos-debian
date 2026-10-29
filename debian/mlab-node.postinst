@@ -34,20 +34,21 @@ env_value() {
     sed -n "s/^[[:space:]]*$1=//p" "$2" | tail -n 1 | sed "s/^[\"']//; s/[\"']\$//"
 }
 
-# mbit_to_bits VALUE: the max-rate answer, asked in Mbit/s (N, Ng or N.Ng),
-# in bit/s, the unit ndt-server takes, rounded down to a whole Mbit/s.
-# Anything else passes through unchanged. Keep in sync with the copy in
-# debian/mlab-node.config.
-mbit_to_bits() {
+# rate_to_bits VALUE: the max-rate answer, a number with a unit suffix (m for
+# Mbit/s, g for Gbit/s), in bit/s, the unit ndt-server takes, rounded down to
+# a whole kbit/s. Anything else passes through unchanged. Keep in sync with
+# the copy in debian/mlab-node.config.
+rate_to_bits() {
     case "$1" in
-        *[!0-9.g]*|''|.*|*.|*.*.*|*g?*|*.g) printf '%s\n' "$1" ;;
-        *g) g=${1%g}; whole=$(printf '%s' "${g%%.*}" | sed 's/^0*//'); frac=
-            case "$g" in *.*) frac=${g#*.} ;; esac
-            frac=$(printf '%-3.3s' "$frac" | tr ' ' 0 | sed 's/^0*//')
-            echo "$(( (${whole:-0} * 1000 + ${frac:-0}) * 1000000 ))" ;;
-        *.*) printf '%s\n' "$1" ;;
-        *) v=$(printf '%s' "$1" | sed 's/^0*//'); echo "$(( ${v:-0} * 1000000 ))" ;;
+        *[!0-9.mg]*|''|.*|*.[mg]|*.*.*|*[mg]?*|[mg]*) printf '%s\n' "$1"; return 0 ;;
+        *m) unit=1000 ;;
+        *g) unit=1000000 ;;
+        *) printf '%s\n' "$1"; return 0 ;;
     esac
+    n=${1%?}; whole=$(printf '%s' "${n%%.*}" | sed 's/^0*//'); frac=
+    case "$n" in *.*) frac=${n#*.} ;; esac
+    frac=$(printf '%-3.3s' "$frac" | tr ' ' 0 | sed 's/^0*//')
+    echo "$(( (${whole:-0} * 1000 + ${frac:-0}) * unit ))"
 }
 
 if [ "$1" = "configure" ]; then
@@ -59,7 +60,7 @@ if [ "$1" = "configure" ]; then
                 interface-maxrate:INTERFACE_MAXRATE ipv4:IPV4 ipv6:IPV6 type:TYPE; do
         db_get "mlab-node/${pair%%:*}"
         val=$RET
-        [ "$pair" != interface-maxrate:INTERFACE_MAXRATE ] || val=$(mbit_to_bits "$val")
+        [ "$pair" != interface-maxrate:INTERFACE_MAXRATE ] || val=$(rate_to_bits "$val")
         set_env "${pair#*:}" "$val" "$ENV_FILE"
     done
 

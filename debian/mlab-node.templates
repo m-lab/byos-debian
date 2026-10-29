@@ -46,12 +46,11 @@ Description: Uplink speed (e.g. 1g, 10g, 25g):
 
 Template: mlab-node/interface-maxrate
 Type: string
-Description: Transmit rate above which new tests are refused (Mbit/s):
+Description: Transmit rate above which new tests are refused (e.g. 450m, 7g):
  When the interface's transmit rate exceeds this value, ndt-server refuses
  new connections so that running tests are not affected by congestion on
- the uplink. Give it in Mbit/s (e.g. 150, 7000) or in Gbit/s with a "g"
- suffix (e.g. 7g, 2.5g). Recommended: 150 for a 1g uplink, 7000 (7g) for
- 10g.
+ the uplink. A number with a unit suffix: "m" for Mbit/s (e.g. 450m) or "g"
+ for Gbit/s (e.g. 7g, 2.5g). Recommended: 150m for a 1g uplink, 7g for 10g.
  .
  The proposed value follows those recommendations for the uplink speed
  given above. It is written to /etc/mlab-node/node.env in bit/s.

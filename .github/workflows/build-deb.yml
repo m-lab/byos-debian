@@ -85,8 +85,8 @@ jobs:
       # satisfiable on the oldest supported target. Preseeding two answers
       # checks the debconf -> /etc/mlab-node path; the rest take the defaults
       # (unattended upgrades on) or the config script's guesses. The max rate
-      # is asked in Mbit/s but stored in bit/s: the install checks the guess
-      # (7000 for a 10g uplink) lands converted, and a noninteractive
+      # is asked with a unit suffix but stored in bit/s: the install checks
+      # the guess (7g for a 10g uplink) lands converted, and a noninteractive
       # reconfigure checks the round trip leaves the file unchanged.
       - name: Install smoke test
         run: |
@@ -99,7 +99,7 @@ jobs:
           grep -qx 'UPLINK=10g' /etc/mlab-node/node.env
           grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab-node/node.env
           DEBIAN_FRONTEND=noninteractive dpkg-reconfigure mlab-node
-          debconf-show mlab-node | grep -q 'mlab-node/interface-maxrate: 7000$'
+          debconf-show mlab-node | grep -q 'mlab-node/interface-maxrate: 7g$'
           grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab-node/node.env
           test "$(stat -c %a /etc/mlab-node/api-key.env)" = 600
           apt-config dump | grep -q 'Unattended-Upgrade::Origins-Pattern:: "origin=mlab-node,label=mlab-node";'
