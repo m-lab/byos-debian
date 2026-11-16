@@ -4,6 +4,31 @@
 #   _API_KEY      Autojoin API key the node registers with.
 #   _PROBABILITY  Probability (0-1) that the node is selected by Locate.
 steps:
+# TEMPORARY, SANDBOX ONLY (branch sandbox-roberto-wif): build the unreleased
+# autojoin `register` (workload identity credentials) from the autojoin
+# sandbox-roberto-wif branch and stage it as an override through
+# MLAB_NODE_LOCAL_BINARIES (see .build/stage-binaries.sh: the directory holds
+# only the overrides; everything else is still downloaded and verified).
+# Remove this step, and the MLAB_NODE_LOCAL_BINARIES env below, once a
+# released register is pinned in .build/components.env. Never merge it.
+# The build mirrors the release workflow in m-lab/autojoin
+# (.github/workflows/release-binaries.yml): static, stripped, linux/amd64.
+- name: golang:1.26
+  id: build-register-wif
+  entrypoint: bash
+  args:
+  - -c
+  - |
+    set -euxo pipefail
+    git clone --depth 1 --branch sandbox-roberto-wif \
+      https://github.com/m-lab/autojoin /tmp/autojoin
+    cd /tmp/autojoin
+    version="0.0.0-wif.$(git rev-parse --short HEAD)"
+    mkdir -p /workspace/.local-binaries
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
+      -ldflags "-s -w -X main.Version=$${version}" \
+      -o /workspace/.local-binaries/autojoin-register ./cmd/register
+
 # Build the package, mirroring .github/workflows/build-deb.yml. Building on
 # bookworm keeps the package's libc6 floor at 2.36, which installs on the
 # VM's Ubuntu 24.04.
@@ -14,6 +39,8 @@ steps:
   - 'BUILD_ID=$BUILD_ID'
   - 'DEBEMAIL=support@measurementlab.net'
   - 'DEBFULLNAME=Measurement Lab'
+  # TEMPORARY, SANDBOX ONLY: use the register built by build-register-wif.
+  - 'MLAB_NODE_LOCAL_BINARIES=/workspace/.local-binaries'
   args:
   - -c
   - |
