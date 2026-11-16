@@ -15,7 +15,7 @@ After=mlab-node-ndt-server.service
 Type=exec
 EnvironmentFile=/usr/share/mlab-node/static.env
 EnvironmentFile=/etc/mlab-node/node.env
-Environment=GOOGLE_APPLICATION_CREDENTIALS=/run/mlab-node/registration/private/service-account-autojoin.json
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/run/mlab-node/registration/private/gcs-credentials.json
 # Wait for ndt-server's events socket, and clear any stale annotator socket.
 ExecStartPre=/usr/libexec/mlab-node/wait-socket /run/mlab-node/sockets/ndt/events/sock
 ExecStartPre=/bin/rm -f /run/mlab-node/sockets/ndt/uuid-annotator/sock

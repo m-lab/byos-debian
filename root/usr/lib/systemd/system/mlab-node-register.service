@@ -18,6 +18,7 @@ EnvironmentFile=/etc/mlab-node/api-key.env
 ExecStart=/usr/libexec/mlab-node/autojoin-register \
   -endpoint=https://autojoin-dot-${PROJECT}.appspot.com/autojoin/v0/node/register/token \
   -token-endpoint=https://${AUTH_URL}/v0/token/autojoin \
+  -storage-token-endpoint=https://${AUTH_URL}/v0/token/storage \
   -key=${API_KEY} \
   -service=ndt \
   -iata=${IATA} \
