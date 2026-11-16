@@ -23,7 +23,9 @@ steps:
     git clone --depth 1 --branch sandbox-roberto-wif \
       https://github.com/m-lab/autojoin /tmp/autojoin
     cd /tmp/autojoin
-    version="0.0.0-wif.$(git rev-parse --short HEAD)"
+    # A 0.0.0 prerelease sorts below the server minimum version, so use a
+    # prerelease of the next patch version.
+    version="v0.5.2-wif.$(git rev-parse --short HEAD)"
     mkdir -p /workspace/.local-binaries
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
       -ldflags "-s -w -X main.Version=$${version}" \
