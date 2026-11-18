@@ -1,0 +1,10 @@
+[Unit]
+Description=Restart M-Lab node registration after it went stale
+Documentation=https://github.com/m-lab/byos-debian
+# Started through OnFailure= of mlab-node-register-ready.service. When
+# register-node is crash-looping this changes nothing; when it is alive but no
+# longer refreshing the registration, this is what gets it going again.
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl --no-block try-restart mlab-node-register.service

@@ -24,6 +24,9 @@ Wants=mlab-node-register.service
 # unit, which waits for the next successful registration. The stack therefore
 # comes back by itself, with fresh registration data, however long the outage.
 StartLimitIntervalSec=0
+# A registration that went stale also restarts register-node, in case it is
+# hung rather than crash-looping (a hung process would never refresh it).
+OnFailure=mlab-node-register-restart.service
 
 [Service]
 Type=exec
