@@ -34,35 +34,35 @@ env_value() {
     sed -n "s/^[[:space:]]*$1=//p" "$2" | tail -n 1 | sed "s/^[\"']//; s/[\"']\$//"
 }
 
-# rate_to_bits VALUE: the max-rate answer, a number with a unit suffix (m for
-# Mbit/s, g for Gbit/s), in bit/s, the unit ndt-server takes, rounded down to
-# a whole kbit/s. Anything else passes through unchanged. Keep in sync with
-# the copy in debian/mlab-node.config.
-rate_to_bits() {
-    case "$1" in
-        *[!0-9.mg]*|''|.*|*.[mg]|*.*.*|*[mg]?*|[mg]*) printf '%s\n' "$1"; return 0 ;;
-        *m) unit=1000 ;;
-        *g) unit=1000000 ;;
-        *) printf '%s\n' "$1"; return 0 ;;
-    esac
-    n=${1%?}; whole=$(printf '%s' "${n%%.*}" | sed 's/^0*//'); frac=
-    case "$n" in *.*) frac=${n#*.} ;; esac
-    frac=$(printf '%-3.3s' "$frac" | tr ' ' 0 | sed 's/^0*//')
-    echo "$(( (${whole:-0} * 1000 + ${frac:-0}) * unit ))"
-}
-
 if [ "$1" = "configure" ]; then
     [ -e "$ENV_FILE" ] || install -m 0644 -o root -g root "$TEMPLATE_DIR/node.env" "$ENV_FILE"
     [ -e "$KEY_FILE" ] || install -m 0600 -o root -g root "$TEMPLATE_DIR/api-key.env" "$KEY_FILE"
 
     for pair in iata:IATA probability:PROBABILITY \
                 interface-name:INTERFACE_NAME uplink:UPLINK \
-                interface-maxrate:INTERFACE_MAXRATE ipv4:IPV4 ipv6:IPV6 type:TYPE; do
+                ipv4:IPV4 ipv6:IPV6 type:TYPE; do
         db_get "mlab-node/${pair%%:*}"
-        val=$RET
-        [ "$pair" != interface-maxrate:INTERFACE_MAXRATE ] || val=$(rate_to_bits "$val")
-        set_env "${pair#*:}" "$val" "$ENV_FILE"
+        set_env "${pair#*:}" "$RET" "$ENV_FILE"
     done
+
+    # The max transmit rate is not asked: it is always derived from the uplink
+    # ("<N>g"), in the bit/s ndt-server takes. The headroom left for the tests
+    # already running is 30% of the uplink, but never more than 3 Gbit/s:
+    # 1g -> 700m, 10g -> 7g, 40g -> 37g. An uplink that is not in that form
+    # leaves it empty, which the completeness check below reports.
+    db_get mlab-node/uplink
+    maxrate=""
+    if echo "$RET" | grep -Eq '^[1-9][0-9]{0,3}g$'; then
+        n=${RET%g}
+        if [ "$n" -le 10 ]; then
+            maxrate=$(( n * 700000000 ))
+        else
+            maxrate=$(( (n - 3) * 1000000000 ))
+        fi
+    fi
+    set_env INTERFACE_MAXRATE "$maxrate" "$ENV_FILE"
+    # 1.1.0 asked for the max rate; drop its answer from the debconf database.
+    db_unregister mlab-node/interface-maxrate || true
 
     # An empty answer means "keep the existing key" (the config script never
     # loads the key into debconf). Clear it once written: debconf is not the

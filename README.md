@@ -158,15 +158,14 @@ guesses.
 | `PROBABILITY` | load-balancer probability | `0.1` |
 | `INTERFACE_NAME` | measurement interface | the default route's interface |
 | `UPLINK` | uplink speed | the link speed the interface reports (`/sys/class/net/*/speed`), if any |
-| `INTERFACE_MAXRATE` | max transmit rate, with a unit suffix: Mbit/s (`450m`) or Gbit/s (`7g`, `2.5g`) | M-Lab's recommendation for a single server: 1g → `300m`, 10g → `7g`, else 75% of the uplink |
+| `INTERFACE_MAXRATE` | (not asked) | always derived from `UPLINK`, in bit/s: the transmit rate above which ndt-server refuses new tests. 70% of the uplink, or the uplink less 3 Gbit/s above 10g (1g → 700m, 10g → 7g, 40g → 37g) |
 | `IPV4` | public IPv4 address | the address outbound traffic comes from (ipinfo.io), else the default route's source address if public |
 | `IPV6` | public IPv6 address | likewise, over IPv6; optional |
 | `TYPE` | machine type | `virtual`/`physical` per `systemd-detect-virt` |
 | (unattended upgrades) | yes/no, default yes | see [Unattended upgrades](#unattended-upgrades) |
 
-Answers are validated (uplink and max rate are lowercased for you, and the
-max rate is converted to the bit/s the file holds); an invalid one is
-explained and asked again. To go through the questions again, with
+Answers are validated (uplink is lowercased for you); an invalid
+one is explained and asked again. To go through the questions again, with
 the current values pre-filled:
 
 ```sh
@@ -190,7 +189,6 @@ sudo debconf-set-selections <<EOF
 mlab-node mlab-node/api-key password <api key>
 mlab-node mlab-node/iata string lhr
 mlab-node mlab-node/uplink string 10g
-mlab-node mlab-node/interface-maxrate string 7g
 mlab-node mlab-node/type select physical
 mlab-node mlab-node/unattended-upgrades boolean true
 EOF
