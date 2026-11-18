@@ -244,10 +244,21 @@ sudo systemctl restart mlab-node.target
 
 The stack is meant to run unattended, so nothing in it gives up:
 
-- Every service restarts on its own, indefinitely, when its process exits, like a container in a Kubernetes pod. A restart of one service does not stop the others.
-- `mlab-node.target` starts any service it finds inactive or failed while the target is up (`Upholds=`), for instance after a prerequisite failed at boot.
-- `mlab-node-register-ready.service` is active only while the node holds a valid registration. It waits, without a timeout, for the first successful registration, then watches that `register-node` keeps refreshing it (about hourly).
-- If the registration is not refreshed for 2 hours (`REGISTRATION_MAX_AGE_SEC` in that unit), the services that depend on it are stopped: ndt-server (after draining running tests), heartbeat, uuid-annotator, jostler and traceroute-caller. They start again, with fresh registration data, as soon as registration succeeds, however long the outage lasted. The node exporter keeps running throughout.
+- Every service restarts on its own, indefinitely, when its process exits,
+  like a container in a Kubernetes pod. A restart of one service does not stop
+  the others.
+- `mlab-node.target` starts any service it finds inactive or failed while the
+  target is up (`Upholds=`), for instance after a prerequisite failed at boot.
+- `mlab-node-register-ready.service` is active only while the node holds a
+  valid registration. It waits, without a timeout, for the first successful
+  registration, then watches that `register-node` keeps refreshing it (about
+  hourly).
+- If the registration is not refreshed for 2 hours (`REGISTRATION_MAX_AGE_SEC`
+  in that unit), the services that depend on it are stopped: ndt-server (after
+  draining running tests), heartbeat, uuid-annotator, jostler and
+  traceroute-caller. They start again, with fresh registration data, as soon
+  as registration succeeds, however long the outage lasted. The node exporter
+  keeps running throughout.
 
 ## Prometheus metrics
 
