@@ -8,15 +8,6 @@ Documentation=https://github.com/m-lab/byos-debian
 # again, e.g. after one of its oneshot prerequisites failed. Together with
 # Restart=always on each component this gives pod semantics: components
 # restart individually and indefinitely, and never take each other down.
-# Wants= is kept next to it because a systemd older than 249 ignores Upholds=,
-# and the stack would then not start at all.
-Wants=mlab-node-register.service
-Wants=mlab-node-ndt-server.service
-Wants=mlab-node-heartbeat.service
-Wants=mlab-node-uuid-annotator.service
-Wants=mlab-node-jostler.service
-Wants=mlab-node-traceroute-caller.service
-Wants=mlab-node-node-exporter.service
 Upholds=mlab-node-register.service
 Upholds=mlab-node-ndt-server.service
 Upholds=mlab-node-heartbeat.service
