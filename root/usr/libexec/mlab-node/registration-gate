@@ -1,0 +1,65 @@
+#!/bin/sh
+# Gate the data-plane services on a valid registration. Runs from
+# mlab-node-register-ready.service in two steps:
+#
+#   wait   block until register-node reports a successful registration, then
+#          export what the components need from it (write-registration-env).
+#   watch  keep running while the registration stays fresh; exit non-zero
+#          once register-node has not refreshed it for REGISTRATION_MAX_AGE_SEC.
+#
+# register-node rewrites its output files on every successful registration
+# (about hourly), so the hostname file's mtime changing is the sign of life.
+# Its /ready endpoint cannot be used for that: it turns true on the first
+# success and never goes back.
+#
+# Staleness is measured on the monotonic clock, from the moment a change of
+# mtime was last observed, and mtimes are only compared for equality. Wall
+# clock steps (NTP on a machine without an RTC) therefore cannot make a fresh
+# registration look old. The price is that the timer starts when `watch`
+# starts, not at the registration's true age.
+set -eu
+
+READY_URL="${REGISTRATION_READY_URL:-http://localhost:8001/ready}"
+FILE="${REGISTRATION_FILE:-/run/mlab-node/registration/shared/hostname}"
+# Holds the mtime that was declared stale, so `wait` does not accept the same
+# registration again (register-node may be hung with /ready still true).
+MARKER="${REGISTRATION_STALE_MARKER:-/run/mlab-node/metadata/registration.stale}"
+MAX_AGE="${REGISTRATION_MAX_AGE_SEC:-7200}"
+POLL="${REGISTRATION_POLL_SEC:-30}"
+
+mtime() { stat -c %Y "${FILE}" 2>/dev/null || echo missing; }
+uptime_sec() { cut -d. -f1 /proc/uptime; }
+
+case "${1:-}" in
+  wait)
+    stale=$(cat "${MARKER}" 2>/dev/null || true)
+    while :; do
+      if curl -fsS -o /dev/null --max-time 5 "${READY_URL}" 2>/dev/null; then
+        m=$(mtime)
+        [ "${m}" != missing ] && [ "${m}" != "${stale}" ] && break
+      fi
+      sleep 2
+    done
+    "$(dirname "$0")/write-registration-env"
+    rm -f "${MARKER}"
+    ;;
+  watch)
+    last=$(mtime)
+    seen=$(uptime_sec)
+    while sleep "${POLL}"; do
+      cur=$(mtime)
+      if [ "${cur}" != missing ] && [ "${cur}" != "${last}" ]; then
+        last=${cur}
+        seen=$(uptime_sec)
+      elif [ $(($(uptime_sec) - seen)) -ge "${MAX_AGE}" ]; then
+        echo "mlab-node: registration not refreshed for ${MAX_AGE}s, stopping the services that depend on it" >&2
+        printf '%s\n' "${last}" > "${MARKER}"
+        exit 1
+      fi
+    done
+    ;;
+  *)
+    echo "usage: registration-gate wait|watch" >&2
+    exit 2
+    ;;
+esac

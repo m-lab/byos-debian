@@ -1,24 +1,36 @@
 [Unit]
-Description=Wait for M-Lab node registration to be ready
+Description=M-Lab node registration validity gate
 Documentation=https://github.com/m-lab/byos-debian
 PartOf=mlab-node.target
 After=mlab-node-register.service
 Wants=mlab-node-register.service
-# This oneshot gates every dependent component on a successful registration
-# (the register-node :8001/ready endpoint), so the hostname, registration.json
-# and service-account files exist before anything reads them. It then exports
-# what components need from the registration as environment
-# (/run/mlab-node/metadata/registration.env, currently ORGANIZATION).
+# This unit is active exactly while the node holds a valid registration, and
+# every component that depends on the registration BindsTo= it.
+#
+# Starting: it stays "activating" until register-node reports a successful
+# registration (:8001/ready), so the hostname, registration.json and
+# credential files exist before anything reads them, then exports what
+# components need from the registration as environment
+# (/run/mlab-node/metadata/registration.env, currently ORGANIZATION). There is
+# no timeout: registration may take hours to succeed and the dependent
+# components simply wait.
+#
+# Running: register-node refreshes the registration about every hour. Short
+# failures change nothing here (register-node restarts on its own). Once the
+# registration has not been refreshed for REGISTRATION_MAX_AGE_SEC this unit
+# fails, which stops the bound components: by then the 2h storage token has
+# expired and the Autojoin API is about to drop the node's DNS record (3h).
+# mlab-node.target (Upholds=) starts them again right away, which starts this
+# unit, which waits for the next successful registration. The stack therefore
+# comes back by itself, with fresh registration data, however long the outage.
+StartLimitIntervalSec=0
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
-# Poll until registration reports ready: retry connection-refused (register
-# still starting) and HTTP errors (not yet registered) for up to ~120s.
-ExecStart=/usr/bin/curl -fsS -o /dev/null \
-  --retry 60 --retry-delay 2 --retry-connrefused --retry-all-errors \
-  http://localhost:8001/ready
-ExecStartPost=/usr/libexec/mlab-node/write-registration-env
+Type=exec
+Environment=REGISTRATION_MAX_AGE_SEC=7200
+ExecStartPre=/usr/libexec/mlab-node/registration-gate wait
+ExecStart=/usr/libexec/mlab-node/registration-gate watch
+TimeoutStartSec=infinity
 
 # --- hardening ---
 User=mlab-node

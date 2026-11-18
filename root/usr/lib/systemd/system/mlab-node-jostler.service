@@ -4,7 +4,10 @@ Documentation=https://github.com/m-lab/byos-debian
 PartOf=mlab-node.target
 # Requires all schemas to be generated (service_completed_successfully) and a
 # successful registration.
-Requires=mlab-node-register-ready.service mlab-node-schemas-ndt7.service mlab-node-schemas-annotation2.service mlab-node-schemas-traceroute.service
+Requires=mlab-node-schemas-ndt7.service mlab-node-schemas-annotation2.service mlab-node-schemas-traceroute.service
+# Bound to the registration gate: stopped when the registration goes stale,
+# started again (by mlab-node.target) once it is valid.
+BindsTo=mlab-node-register-ready.service
 After=mlab-node-register-ready.service mlab-node-schemas-ndt7.service mlab-node-schemas-annotation2.service mlab-node-schemas-traceroute.service
 
 [Service]

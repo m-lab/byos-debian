@@ -2,7 +2,9 @@
 Description=M-Lab heartbeat (reports liveness to the Locate API)
 Documentation=https://github.com/m-lab/byos-debian
 PartOf=mlab-node.target
-Requires=mlab-node-register-ready.service
+# Bound to the registration gate: stopped when the registration goes stale,
+# started again (by mlab-node.target) once it is valid.
+BindsTo=mlab-node-register-ready.service
 After=mlab-node-register-ready.service
 # Soft dependency on ndt-server: order after it but do not tear heartbeat
 # down if ndt-server restarts.
