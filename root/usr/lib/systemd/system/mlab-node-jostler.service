@@ -6,7 +6,6 @@ PartOf=mlab-node.target
 # successful registration.
 Requires=mlab-node-register-ready.service mlab-node-schemas-ndt7.service mlab-node-schemas-annotation2.service mlab-node-schemas-traceroute.service
 After=mlab-node-register-ready.service mlab-node-schemas-ndt7.service mlab-node-schemas-annotation2.service mlab-node-schemas-traceroute.service
-BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec

@@ -8,8 +8,6 @@ After=mlab-node-register-ready.service
 # down if ndt-server restarts.
 Wants=mlab-node-ndt-server.service
 After=mlab-node-ndt-server.service
-# Atomic lifecycle: bound to register-node, the keystone of the stack.
-BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec

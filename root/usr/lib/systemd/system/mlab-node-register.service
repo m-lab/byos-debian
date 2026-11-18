@@ -4,12 +4,11 @@ Documentation=https://github.com/m-lab/byos-debian
 PartOf=mlab-node.target
 After=network-online.target
 Wants=network-online.target
-# register-node is the keystone of the stack: every other component BindsTo=
-# this unit, so if registration goes down the whole stack is brought down with
-# it (it cannot run without a valid registration). A genuine crash-loop is
-# bounded by the start limit below, at which point the stack stays down.
-StartLimitIntervalSec=600
-StartLimitBurst=5
+# Like a container in a pod, register-node restarts on its own and never gives
+# up: it exits on any registration error (API or network down), so a start
+# limit would turn a transient outage into a permanent one. The other
+# components keep running across its restarts.
+StartLimitIntervalSec=0
 
 [Service]
 Type=exec

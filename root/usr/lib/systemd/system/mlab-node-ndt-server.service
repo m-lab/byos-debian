@@ -8,8 +8,6 @@ PartOf=mlab-node.target
 #   uuidprefix/bbr  -> prerequisites generated/loaded
 Requires=mlab-node-register-ready.service mlab-node-schemas-ndt7.service mlab-node-uuidprefix.service mlab-node-bbr.service
 After=mlab-node-register-ready.service mlab-node-schemas-ndt7.service mlab-node-uuidprefix.service mlab-node-bbr.service
-# Atomic lifecycle: ndt-server cannot run without an active registration.
-BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec

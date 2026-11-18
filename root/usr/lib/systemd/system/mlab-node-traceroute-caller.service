@@ -8,7 +8,6 @@ After=mlab-node-register-ready.service mlab-node-schemas-traceroute.service mlab
 # wait for the socket in ExecStartPre.
 Wants=mlab-node-ndt-server.service
 After=mlab-node-ndt-server.service
-BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec

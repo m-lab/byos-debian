@@ -3,7 +3,7 @@ Description=Wait for M-Lab node registration to be ready
 Documentation=https://github.com/m-lab/byos-debian
 PartOf=mlab-node.target
 After=mlab-node-register.service
-BindsTo=mlab-node-register.service
+Wants=mlab-node-register.service
 # This oneshot gates every dependent component on a successful registration
 # (the register-node :8001/ready endpoint), so the hostname, registration.json
 # and service-account files exist before anything reads them. It then exports

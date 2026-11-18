@@ -8,7 +8,6 @@ After=mlab-node-register-ready.service
 # tcpinfo .../events/sock, but must not be torn down if ndt-server restarts.
 Wants=mlab-node-ndt-server.service
 After=mlab-node-ndt-server.service
-BindsTo=mlab-node-register.service
 
 [Service]
 Type=exec
