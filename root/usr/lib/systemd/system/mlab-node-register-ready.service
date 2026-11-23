@@ -8,17 +8,20 @@ BindsTo=mlab-node-register.service
 # (the register-node :8001/ready endpoint), so the hostname, registration.json
 # and service-account files exist before anything reads them. It then exports
 # what components need from the registration as environment
-# (/run/mlab-node/metadata/registration.env, currently ORGANIZATION).
+# (/run/mlab-node/metadata/registration.env, currently ORGANIZATION), and
+# the max transmit rate derived from UPLINK (/run/mlab-node/metadata/maxrate.env).
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+EnvironmentFile=/etc/mlab-node/node.env
 # Poll until registration reports ready: retry connection-refused (register
 # still starting) and HTTP errors (not yet registered) for up to ~120s.
 ExecStart=/usr/bin/curl -fsS -o /dev/null \
   --retry 60 --retry-delay 2 --retry-connrefused --retry-all-errors \
   http://localhost:8001/ready
 ExecStartPost=/usr/libexec/mlab-node/write-registration-env
+ExecStartPost=/usr/libexec/mlab-node/write-maxrate-env
 
 # --- hardening ---
 User=mlab-node
