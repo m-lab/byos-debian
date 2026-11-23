@@ -22,6 +22,12 @@ mlab-node (1.1.0) unstable; urgency=medium
     distribution's security updates and the mlab-node package, via
     /etc/apt/apt.conf.d/52mlab-node-unattended-upgrades. Depend on
     unattended-upgrades and iproute2.
+  * Update uuid-annotator to v0.5.11 and traceroute-caller to v0.12.1: both
+    now reconnect to ndt-server's event socket when ndt-server restarts,
+    instead of silently no longer annotating or tracing its measurements.
+  * Update jostler to v1.1.5: a failed upload is retried and, if it still
+    fails, its files are bundled again later instead of staying on disk
+    until jostler restarts.
 
  -- Measurement Lab <support@measurementlab.net>  Wed, 16 Sep 2026 00:00:00 +0000
 
