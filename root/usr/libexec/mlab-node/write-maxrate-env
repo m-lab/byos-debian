@@ -5,10 +5,16 @@
 # congestion on the uplink. The headroom left for them is 30% of the uplink,
 # but never more than 3 Gbit/s: 1g -> 700m, 10g -> 7g, 40g -> 37g.
 #
-# Runs from mlab-node-register-ready.service on every start of the stack, so
+# Runs from mlab-node-register-ready.service on every start of the stack
+# (after registration succeeded), so
 # the rate always follows the UPLINK in /etc/mlab-node/node.env, however that
 # was set (installer, dpkg-reconfigure or a hand edit).
 set -eu
+
+OUT=/run/mlab-node/metadata/maxrate.env
+# Never leave a rate derived from an earlier UPLINK behind: without the file
+# ndt-server does not start, which is the right outcome for a bad UPLINK.
+rm -f "${OUT}"
 
 uplink=${UPLINK:-}
 n=${uplink%g}
@@ -22,4 +28,4 @@ if [ "${n}" -le 10 ]; then
 else
   rate=$(((n - 3) * 1000000000))
 fi
-printf 'INTERFACE_MAXRATE=%s\n' "${rate}" > /run/mlab-node/metadata/maxrate.env
+printf 'INTERFACE_MAXRATE=%s\n' "${rate}" > "${OUT}"

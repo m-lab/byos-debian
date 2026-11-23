@@ -4,7 +4,7 @@
 # property of the API key on the Autojoin side, nothing is configured locally,
 # and the node learns it from the hostname Autojoin registered it under,
 # <service>-<site>-<machine>.<org>.<project>.measurement-lab.org. Runs from
-# mlab-node-register-ready.service once registration succeeded, so the
+# mlab-node-register-ready.service (registration-gate) once registration succeeded, so the
 # hostname file exists.
 set -eu
 
