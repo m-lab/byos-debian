@@ -28,6 +28,12 @@ mlab-node (1.1.0) unstable; urgency=medium
   * Update jostler to v1.1.5: a failed upload is retried and, if it still
     fails, its files are bundled again later instead of staying on disk
     until jostler restarts.
+  * Access GCS through workload identity federation instead of a
+    per-organization service account key: register exchanges the API key for
+    a short-lived storage token and refreshes it on every registration pass.
+  * Upload measurement data to autoload/v3/org=<organization>/, so that the
+    organization of each row is taken from the object path when it is loaded
+    into BigQuery.
 
  -- Measurement Lab <support@measurementlab.net>  Wed, 16 Sep 2026 00:00:00 +0000
 

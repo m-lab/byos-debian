@@ -20,7 +20,7 @@ Environment=GOOGLE_APPLICATION_CREDENTIALS=/run/mlab-node/registration/private/g
 ExecStart=/usr/libexec/mlab-node/jostler \
   -mlab-node-name=@/run/mlab-node/registration/shared/hostname \
   -gcs-bucket=archive-${PROJECT} \
-  -gcs-data-dir=autoload/v2 \
+  -gcs-data-dir=autoload/v3 \
   -local-data-dir=/var/spool/mlab-node \
   -organization=${ORGANIZATION} \
   -experiment=ndt \
