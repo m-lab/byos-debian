@@ -11,9 +11,10 @@ Wants=mlab-node-register.service
 # registration (:8001/ready), so the hostname, registration.json and
 # credential files exist before anything reads them, then exports what
 # components need from the registration as environment
-# (/run/mlab-node/metadata/registration.env, currently ORGANIZATION). There is
-# no timeout: registration may take hours to succeed and the dependent
-# components simply wait.
+# (/run/mlab-node/metadata/registration.env, currently ORGANIZATION) and the
+# max transmit rate derived from UPLINK (/run/mlab-node/metadata/maxrate.env).
+# There is no timeout: registration may take hours to succeed and the
+# dependent components simply wait.
 #
 # Running: register-node refreshes the registration about every hour. Short
 # failures change nothing here (register-node restarts on its own). Once the
@@ -30,8 +31,13 @@ OnFailure=mlab-node-register-restart.service
 
 [Service]
 Type=exec
+EnvironmentFile=/etc/mlab-node/node.env
 Environment=REGISTRATION_MAX_AGE_SEC=7200
 ExecStartPre=/usr/libexec/mlab-node/registration-gate wait
+# Derive ndt-server's max transmit rate from UPLINK. "-": an unusable UPLINK
+# must not fail this unit (that would restart register-node in a loop); the
+# helper logs the reason and leaves no maxrate.env, so only ndt-server fails.
+ExecStartPre=-/usr/libexec/mlab-node/write-maxrate-env
 ExecStart=/usr/libexec/mlab-node/registration-gate watch
 TimeoutStartSec=infinity
 

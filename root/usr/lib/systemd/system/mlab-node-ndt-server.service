@@ -17,6 +17,9 @@ Type=exec
 EnvironmentFile=/etc/mlab-node/node.env
 # ORGANIZATION, derived from the registration by register-ready.
 EnvironmentFile=/run/mlab-node/metadata/registration.env
+# INTERFACE_MAXRATE, derived from UPLINK by register-ready. Listed after
+# node.env so it wins over a leftover assignment there.
+EnvironmentFile=/run/mlab-node/metadata/maxrate.env
 # Clear any stale tcpinfo socket left by a previous instance before binding.
 ExecStartPre=/bin/rm -f /run/mlab-node/sockets/ndt/events/sock
 ExecStart=/usr/libexec/mlab-node/ndt-server \

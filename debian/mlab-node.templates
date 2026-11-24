@@ -42,17 +42,11 @@ Description: Uplink speed (e.g. 1g, 10g, 25g):
  followed by "g" (gigabits per second). The minimum M-Lab requires is 1g;
  10g or faster is recommended.
  .
- The proposed value, when present, is the link speed the interface reports.
-
-Template: mlab-node/interface-maxrate
-Type: string
-Description: Transmit rate above which new tests are refused (bit/s):
- When the interface's transmit rate exceeds this value, ndt-server refuses
- new connections so that running tests are not affected by congestion on
- the uplink. Recommended: 150000000 for a 1g uplink, 7000000000 for 10g.
+ ndt-server refuses new tests while the interface transmits at more than
+ 70% of this speed (or, above 10g, this speed less 3 Gbit/s), so that
+ running tests are not affected by congestion on the uplink.
  .
- The proposed value follows those recommendations for the uplink speed
- given above.
+ The proposed value, when present, is the link speed the interface reports.
 
 Template: mlab-node/ipv4
 Type: string

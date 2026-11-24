@@ -158,7 +158,6 @@ guesses.
 | `PROBABILITY` | load-balancer probability | `0.1` |
 | `INTERFACE_NAME` | measurement interface | the default route's interface |
 | `UPLINK` | uplink speed | the link speed the interface reports (`/sys/class/net/*/speed`), if any |
-| `INTERFACE_MAXRATE` | max transmit rate | M-Lab's recommendation for the uplink: 1g → 150000000, 10g → 7000000000, else 75% of the uplink |
 | `IPV4` | public IPv4 address | the address outbound traffic comes from (ipinfo.io), else the default route's source address if public |
 | `IPV6` | public IPv6 address | likewise, over IPv6; optional |
 | `TYPE` | machine type | `virtual`/`physical` per `systemd-detect-virt` |
@@ -178,6 +177,12 @@ asks about, so comments, hand edits and extra settings (such as a `PROJECT`
 override) survive upgrades and reconfigurations. If a required setting is
 still empty after installation, the stack is not started and the postinst
 says so.
+
+The transmit rate above which ndt-server refuses new tests is not a setting:
+it is derived from `UPLINK` each time the stack starts, as 70% of the uplink
+or, above 10g, the uplink less 3 Gbit/s (1g → 700 Mbit/s, 10g → 7 Gbit/s,
+40g → 37 Gbit/s). An `INTERFACE_MAXRATE` line left in `node.env` by an
+earlier build is removed on upgrade.
 
 ### Unattended installation
 

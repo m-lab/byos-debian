@@ -1,0 +1,31 @@
+#!/bin/sh
+# Derive ndt-server's max transmit rate (-txcontroller.max-rate, bit/s) from
+# UPLINK and export it as an EnvironmentFile. Above this rate ndt-server
+# refuses new tests so the ones already running are not affected by
+# congestion on the uplink. The headroom left for them is 30% of the uplink,
+# but never more than 3 Gbit/s: 1g -> 700m, 10g -> 7g, 40g -> 37g.
+#
+# Runs from mlab-node-register-ready.service on every start of the stack
+# (after registration succeeded), so
+# the rate always follows the UPLINK in /etc/mlab-node/node.env, however that
+# was set (installer, dpkg-reconfigure or a hand edit).
+set -eu
+
+OUT=/run/mlab-node/metadata/maxrate.env
+# Never leave a rate derived from an earlier UPLINK behind: without the file
+# ndt-server does not start, which is the right outcome for a bad UPLINK.
+rm -f "${OUT}"
+
+uplink=${UPLINK:-}
+n=${uplink%g}
+case "${n}" in ''|0*|*[!0-9]*|?????*) n= ;; esac
+if [ -z "${n}" ] || [ "${n}g" != "${uplink}" ]; then
+  echo "mlab-node: UPLINK '${uplink}' in /etc/mlab-node/node.env is not an integer followed by g (e.g. 10g)" >&2
+  exit 1
+fi
+if [ "${n}" -le 10 ]; then
+  rate=$((n * 700000000))
+else
+  rate=$(((n - 3) * 1000000000))
+fi
+printf 'INTERFACE_MAXRATE=%s\n' "${rate}" > "${OUT}"

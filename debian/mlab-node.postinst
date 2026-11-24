@@ -40,10 +40,25 @@ if [ "$1" = "configure" ]; then
 
     for pair in iata:IATA probability:PROBABILITY \
                 interface-name:INTERFACE_NAME uplink:UPLINK \
-                interface-maxrate:INTERFACE_MAXRATE ipv4:IPV4 ipv6:IPV6 type:TYPE; do
+                ipv4:IPV4 ipv6:IPV6 type:TYPE; do
         db_get "mlab-node/${pair%%:*}"
         set_env "${pair#*:}" "$RET" "$ENV_FILE"
     done
+
+    # The max transmit rate is neither asked nor stored: write-maxrate-env
+    # derives it from UPLINK each time the stack starts. Drop what earlier
+    # builds left behind: the debconf answer, and the node.env assignment
+    # (with the comment the template gave it), which would now be ignored.
+    db_unregister mlab-node/interface-maxrate || true
+    if grep -q '^[[:space:]]*INTERFACE_MAXRATE=' "$ENV_FILE"; then
+        tmp=$(mktemp "$ENV_FILE.XXXXXX")
+        sed -e '/^[[:space:]]*INTERFACE_MAXRATE=/d' \
+            -e '/^# INTERFACE_MAXRATE is the rate (bit\/s) above which ndt-server refuses new$/d' \
+            -e '/^# connections\. Recommended: 1G -> 150000000, 10G -> 7000000000\.$/d' \
+            "$ENV_FILE" > "$tmp"
+        cat "$tmp" > "$ENV_FILE"
+        rm -f "$tmp"
+    fi
 
     # An empty answer means "keep the existing key" (the config script never
     # loads the key into debconf). Clear it once written: debconf is not the
@@ -95,7 +110,7 @@ db_stop
 
 if [ "$1" = "configure" ]; then
     missing=""
-    for key in IATA PROBABILITY INTERFACE_NAME UPLINK INTERFACE_MAXRATE IPV4 TYPE; do
+    for key in IATA PROBABILITY INTERFACE_NAME UPLINK IPV4 TYPE; do
         [ -n "$(env_value "$key" "$ENV_FILE")" ] || missing="$missing $key"
     done
     [ -n "$(env_value API_KEY "$KEY_FILE")" ] || missing="$missing API_KEY"

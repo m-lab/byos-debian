@@ -84,7 +84,9 @@ jobs:
       # Installing on bookworm itself proves the computed libc6 floor is
       # satisfiable on the oldest supported target. Preseeding two answers
       # checks the debconf -> /etc/mlab-node path; the rest take the defaults
-      # (unattended upgrades on) or the config script's guesses.
+      # (unattended upgrades on) or the config script's guesses. The max rate
+      # is not a setting: run the helper that derives it at stack start
+      # against the installed configuration (70% of a 10g uplink).
       - name: Install smoke test
         run: |
           echo "mlab-node mlab-node/iata string oma" | debconf-set-selections
@@ -94,7 +96,9 @@ jobs:
           echo "Depends: $(dpkg-deb -f ../mlab-node_*.deb Depends)"
           grep -qx 'IATA=oma' /etc/mlab-node/node.env
           grep -qx 'UPLINK=10g' /etc/mlab-node/node.env
-          grep -qx 'INTERFACE_MAXRATE=7000000000' /etc/mlab-node/node.env
+          ! grep -q INTERFACE_MAXRATE /etc/mlab-node/node.env
+          env "$(grep '^UPLINK=' /etc/mlab-node/node.env)" /usr/libexec/mlab-node/write-maxrate-env
+          grep -qx 'INTERFACE_MAXRATE=7000000000' /run/mlab-node/metadata/maxrate.env
           test "$(stat -c %a /etc/mlab-node/api-key.env)" = 600
           apt-config dump | grep -q 'Unattended-Upgrade::Origins-Pattern:: "origin=mlab-node,label=mlab-node";'
           sed -n '/^[A-Z]/p' /etc/mlab-node/node.env
